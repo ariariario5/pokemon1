@@ -18,7 +18,7 @@
                 <div class="enemy-pokemon">
                     <div class="enemy-info">
                         <div class="pokemon-name" id="enemy-name">フシギダネ</div>
-                        <div class="level">Lv. 5</div>
+                        <div class="level" id="enemy-level">Lv. 5</div>
                     </div>
                     <div class="hp-bar">
                         <div class="hp-label">HP:</div>
@@ -107,7 +107,7 @@
                 <div class="player-pokemon">
                     <div class="player-info">
                         <div class="pokemon-name" id="player-name">ヒトカゲ</div>
-                        <div class="level">Lv. 5</div>
+                        <div class="level" id="player-level">Lv. 5</div>
                     </div>
                     <div class="hp-bar">
                         <div class="hp-label">HP:</div>
@@ -116,6 +116,15 @@
                         </div>
                         <div class="hp-text">
                             <span id="player-current-hp">20</span>/<span id="player-max-hp">20</span>
+                        </div>
+                    </div>
+                    <div class="exp-bar">
+                        <div class="exp-label">EXP:</div>
+                        <div class="exp-container">
+                            <div class="exp-fill" id="player-exp"></div>
+                        </div>
+                        <div class="exp-text">
+                            <span id="player-exp-current">0</span>/<span id="player-exp-next">100</span>
                         </div>
                     </div>
                 </div>
@@ -161,6 +170,22 @@
                     <span id="volume-display" class="volume-display">30</span>
                 </div>
             </div>
+        </div>
+
+        <!-- バトルログ -->
+        <div class="battle-log" id="battle-log" style="display: none;">
+            <div class="log-header">
+                <span>バトルログ</span>
+                <button class="log-close" id="log-close">✕</button>
+            </div>
+            <div class="log-content" id="log-content">
+                <!-- ログメッセージがここに追加される -->
+            </div>
+        </div>
+
+        <!-- バトルログ表示ボタン -->
+        <div class="log-toggle">
+            <button id="log-toggle" class="log-button">ログ</button>
         </div>
 
         <!-- メッセージボックス -->

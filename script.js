@@ -34,11 +34,23 @@ const pokemonData = {
     }
 };
 
+// タイプ相性テーブル（攻撃タイプ→防御タイプ）
+const typeChart = {
+    "ノーマル": { "ノーマル": 1.0, "ほのお": 1.0, "みず": 1.0, "くさ": 1.0, "でんき": 1.0 },
+    "ほのお": { "ノーマル": 1.0, "ほのお": 0.5, "みず": 0.5, "くさ": 2.0, "でんき": 1.0 },
+    "みず": { "ノーマル": 1.0, "ほのお": 2.0, "みず": 0.5, "くさ": 0.5, "でんき": 1.0 },
+    "くさ": { "ノーマル": 1.0, "ほのお": 0.5, "みず": 2.0, "くさ": 0.5, "でんき": 1.0 },
+    "でんき": { "ノーマル": 1.0, "ほのお": 1.0, "みず": 2.0, "くさ": 0.5, "でんき": 0.5 }
+};
+
 // ゲーム状態（拡張版）
 let gameState = {
     player: {
         pokemon: { ...pokemonData.hitokage },
+        level: 5,
         currentHp: 20,
+        exp: 0,
+        expToNext: 100,
         statStages: {
             attack: 0,
             defense: 0,
@@ -51,7 +63,10 @@ let gameState = {
     },
     enemy: {
         pokemon: { ...pokemonData.fushigidane },
+        level: 5,
         currentHp: 22,
+        exp: 0,
+        expToNext: 100,
         statStages: {
             attack: 0,
             defense: 0,
@@ -65,6 +80,7 @@ let gameState = {
     turn: "player",
     battlePhase: "menu", // menu, move-select, battle, message
     turnOrder: [], // 先攻後攻の順番
+    battleLog: [], // 戦闘ログ
     messageQueue: [],
     currentMessage: 0
 };
@@ -164,6 +180,94 @@ function playDefeatSound() {
     });
 }
 
+function playLevelUpSound() {
+    // レベルアップファンファーレ
+    const levelUpMelody = [
+        {note: 523, duration: 0.2}, // C
+        {note: 659, duration: 0.2}, // E
+        {note: 784, duration: 0.2}, // G
+        {note: 1047, duration: 0.2}, // C (高)
+        {note: 1319, duration: 0.5}  // E (高)
+    ];
+
+    let currentTime = 0;
+    levelUpMelody.forEach(({note, duration}) => {
+        setTimeout(() => {
+            playSound(note, duration, 'triangle', 1.0);
+        }, currentTime * 1000);
+        currentTime += duration;
+    });
+}
+
+// 経験値・レベルアップ システム
+function gainExperience(pokemon, expGained) {
+    pokemon.exp += expGained;
+
+    if (pokemon.exp >= pokemon.expToNext) {
+        return levelUp(pokemon);
+    }
+    return false;
+}
+
+function levelUp(pokemon) {
+    pokemon.level++;
+    pokemon.exp -= pokemon.expToNext;
+    pokemon.expToNext = Math.floor(pokemon.expToNext * 1.2); // 次のレベルに必要な経験値増加
+
+    // ステータス上昇
+    const hpIncrease = Math.floor(Math.random() * 3) + 2; // 2-4上昇
+    const statIncrease = Math.floor(Math.random() * 2) + 1; // 1-2上昇
+
+    pokemon.pokemon.hp += hpIncrease;
+    pokemon.pokemon.attack += statIncrease;
+    pokemon.pokemon.defense += statIncrease;
+    pokemon.pokemon.spAttack += statIncrease;
+    pokemon.pokemon.spDefense += statIncrease;
+    pokemon.pokemon.speed += statIncrease;
+
+    // 現在HPも回復
+    pokemon.currentHp += hpIncrease;
+
+    return {
+        hpIncrease,
+        statIncrease,
+        newLevel: pokemon.level
+    };
+}
+
+function showLevelUpAnimation(pokemon, levelUpData, callback) {
+    playLevelUpSound();
+
+    // レベルアップログ追加
+    addToBattleLog(`${pokemon.pokemon.name}がレベル${levelUpData.newLevel}にアップ！`, 'system');
+    addToBattleLog(`HP+${levelUpData.hpIncrease} ステータス+${levelUpData.statIncrease}`, 'system');
+
+    // ポケモンスプライトにジャンプアニメーション
+    const sprite = pokemon === gameState.player ?
+        document.querySelector('.player-sprite') :
+        document.querySelector('.enemy-sprite');
+
+    sprite.classList.add('level-up-jump');
+
+    setTimeout(() => {
+        sprite.classList.remove('level-up-jump');
+    }, 1000);
+
+    // レベル表示更新
+    if (pokemon === gameState.player && elements.playerLevel) {
+        elements.playerLevel.textContent = `Lv. ${levelUpData.newLevel}`;
+    }
+
+    updateExpBar();
+
+    // レベルアップメッセージ表示
+    showMessage(`${pokemon.pokemon.name}は レベル${levelUpData.newLevel}に あがった！`, () => {
+        showMessage(`HP が ${levelUpData.hpIncrease} あがった！`, () => {
+            showMessage(`ステータスが あがった！`, callback);
+        });
+    });
+}
+
 // バトルBGM (簡素化版)
 let bgmIsPlaying = false;
 let bgmInterval;
@@ -196,24 +300,73 @@ function stopBattleBGM() {
 const elements = {
     playerName: document.getElementById('player-name'),
     enemyName: document.getElementById('enemy-name'),
+    playerLevel: document.getElementById('player-level'),
+    enemyLevel: document.getElementById('enemy-level'),
     playerHp: document.getElementById('player-hp'),
     enemyHp: document.getElementById('enemy-hp'),
     playerCurrentHp: document.getElementById('player-current-hp'),
     playerMaxHp: document.getElementById('player-max-hp'),
+    playerExp: document.getElementById('player-exp'),
+    playerExpCurrent: document.getElementById('player-exp-current'),
+    playerExpNext: document.getElementById('player-exp-next'),
     battleMessage: document.getElementById('battle-message'),
     mainMenu: document.getElementById('main-menu'),
     movesMenu: document.getElementById('moves-menu'),
     playerSprite: document.getElementById('player-sprite-img'),
-    enemySprite: document.getElementById('enemy-sprite-img')
+    enemySprite: document.getElementById('enemy-sprite-img'),
+    battleLog: document.getElementById('battle-log'),
+    logContent: document.getElementById('log-content'),
+    logToggle: document.getElementById('log-toggle'),
+    logClose: document.getElementById('log-close')
 };
+
+// バトルログ システム
+function addToBattleLog(message, type = 'system') {
+    gameState.battleLog.push({ message, type, timestamp: Date.now() });
+
+    // ログエントリを作成
+    const logEntry = document.createElement('div');
+    logEntry.className = `log-entry ${type}`;
+    logEntry.textContent = message;
+
+    if (elements.logContent) {
+        elements.logContent.appendChild(logEntry);
+        // 自動スクロール
+        elements.logContent.scrollTop = elements.logContent.scrollHeight;
+    }
+}
+
+function toggleBattleLog() {
+    if (elements.battleLog) {
+        const isVisible = elements.battleLog.style.display !== 'none';
+        elements.battleLog.style.display = isVisible ? 'none' : 'block';
+        playMenuSound();
+    }
+}
+
+// 経験値バー更新
+function updateExpBar() {
+    if (elements.playerExp && elements.playerExpCurrent && elements.playerExpNext) {
+        const expPercent = (gameState.player.exp / gameState.player.expToNext) * 100;
+        elements.playerExp.style.width = expPercent + '%';
+        elements.playerExpCurrent.textContent = gameState.player.exp;
+        elements.playerExpNext.textContent = gameState.player.expToNext;
+    }
+}
 
 // 初期表示更新
 function initializeDisplay() {
     elements.playerName.textContent = gameState.player.pokemon.name;
     elements.enemyName.textContent = gameState.enemy.pokemon.name;
+
+    if (elements.playerLevel) elements.playerLevel.textContent = `Lv. ${gameState.player.level}`;
+    if (elements.enemyLevel) elements.enemyLevel.textContent = `Lv. ${gameState.enemy.level}`;
+
     elements.playerCurrentHp.textContent = gameState.player.currentHp;
     elements.playerMaxHp.textContent = gameState.player.pokemon.hp;
+
     updateHpBars();
+    updateExpBar();
 
     // すべてを表示状態にして即座にゲーム開始
     const enemySprite = document.querySelector('.enemy-sprite');
@@ -225,6 +378,9 @@ function initializeDisplay() {
     if (playerSprite) playerSprite.style.opacity = '1';
     if (enemyPokemon) enemyPokemon.style.opacity = '1';
     if (playerPokemon) playerPokemon.style.opacity = '1';
+
+    // バトルログ初期化
+    addToBattleLog('バトル開始！', 'system');
 }
 
 
@@ -259,6 +415,11 @@ function updateHpBars() {
 // メッセージ表示
 function showMessage(message, callback) {
     elements.battleMessage.textContent = message;
+
+    // バトルログにも追加
+    if (message !== "どうする？" && message !== "どの わざを つかう？") {
+        addToBattleLog(message);
+    }
 
     // メッセージボックスクリックでメッセージ進行
     const messageBox = document.querySelector('.message-box');
@@ -307,25 +468,45 @@ function determineTurnOrder(playerMove, enemyMove) {
     }
 }
 
-// ダメージ計算（物理/特殊分け）
-function calculateDamage(attacker, attackerData, defender, defenderData, move) {
-    if (move.power === 0) return 0;
+// タイプ相性計算
+function getTypeEffectiveness(moveType, defenderType) {
+    return typeChart[moveType]?.[defenderType] || 1.0;
+}
+
+// クリティカル判定
+function checkCriticalHit() {
+    return Math.random() < (1/16); // 1/16確率
+}
+
+// レベル補正ステータス計算
+function getLevelAdjustedStat(baseStat, level) {
+    return Math.floor(baseStat * (1 + (level - 1) * 0.1));
+}
+
+// 高度なダメージ計算式
+function calculateDamage(attacker, defender, move) {
+    if (move.power === 0) return { damage: 0, isCritical: false, effectiveness: 1.0 };
 
     // 命中判定
     if (Math.random() * 100 > move.accuracy) {
-        return -1; // 外れ
+        return { damage: -1, isCritical: false, effectiveness: 1.0 }; // 外れ
     }
 
     let attackStat, defenseStat;
 
+    // レベル補正付きステータス取得
     if (move.category === 'physical') {
-        attackStat = getEffectiveStat(attacker.pokemon, 'attack', attacker.statStages);
-        defenseStat = getEffectiveStat(defender.pokemon, 'defense', defender.statStages);
+        const baseAttack = getLevelAdjustedStat(attacker.pokemon.attack, attacker.level);
+        const baseDefense = getLevelAdjustedStat(defender.pokemon.defense, defender.level);
+        attackStat = getEffectiveStat({ attack: baseAttack }, 'attack', attacker.statStages);
+        defenseStat = getEffectiveStat({ defense: baseDefense }, 'defense', defender.statStages);
     } else if (move.category === 'special') {
-        attackStat = getEffectiveStat(attacker.pokemon, 'spAttack', attacker.statStages);
-        defenseStat = getEffectiveStat(defender.pokemon, 'spDefense', defender.statStages);
+        const baseSpAttack = getLevelAdjustedStat(attacker.pokemon.spAttack, attacker.level);
+        const baseSpDefense = getLevelAdjustedStat(defender.pokemon.spDefense, defender.level);
+        attackStat = getEffectiveStat({ spAttack: baseSpAttack }, 'spAttack', attacker.statStages);
+        defenseStat = getEffectiveStat({ spDefense: baseSpDefense }, 'spDefense', defender.statStages);
     } else {
-        return 0; // ステータス技
+        return { damage: 0, isCritical: false, effectiveness: 1.0 }; // ステータス技
     }
 
     // やけど状態は物理攻撃力半減
@@ -333,14 +514,31 @@ function calculateDamage(attacker, attackerData, defender, defenderData, move) {
         attackStat = Math.floor(attackStat / 2);
     }
 
+    // クリティカル判定
+    const isCritical = checkCriticalHit();
+    let criticalMultiplier = isCritical ? 2.0 : 1.0;
+
+    // タイプ相性
+    const effectiveness = getTypeEffectiveness(move.type, defender.pokemon.type);
+
+    // 基本ダメージ計算（レベル補正込み）
+    const levelFactor = (2 * attacker.level + 10) / 250;
     const baseDamage = Math.floor(
-        ((2 * 5 + 10) / 250) * (attackStat / defenseStat) * move.power + 2
+        levelFactor * (attackStat / defenseStat) * move.power + 2
     );
 
     // ランダム要素 (85-100%)
     const randomFactor = (Math.random() * 0.15 + 0.85);
 
-    return Math.max(1, Math.floor(baseDamage * randomFactor));
+    // 最終ダメージ
+    let finalDamage = Math.floor(baseDamage * criticalMultiplier * effectiveness * randomFactor);
+    finalDamage = Math.max(1, finalDamage);
+
+    return {
+        damage: finalDamage,
+        isCritical: isCritical,
+        effectiveness: effectiveness
+    };
 }
 
 // 状態異常関連
@@ -372,6 +570,7 @@ function processStatusDamage(target) {
 
     if (damage > 0) {
         target.currentHp = Math.max(0, target.currentHp - damage);
+        addToBattleLog(`${target.pokemon.name}は${target.statusCondition === 'burn' ? 'やけど' : 'どく'}で${damage}ダメージ`, 'status');
         return damage;
     }
     return 0;
@@ -496,15 +695,38 @@ function executeMove(attacker, defender, move, callback) {
             }
         } else {
             // 攻撃技の処理
-            const damage = calculateDamage(attacker, attacker, defender, defender, move);
+            const damageResult = calculateDamage(attacker, defender, move);
 
-            if (damage === -1) {
+            if (damageResult.damage === -1) {
                 showMessage(`${attacker.pokemon.name}の こうげきは はずれた！`, callback);
                 return;
             }
 
-            defender.currentHp = Math.max(0, defender.currentHp - damage);
+            // ダメージログを追加
+            addToBattleLog(`${defender.pokemon.name}に ${damageResult.damage}のダメージ！`, 'damage');
+
+            // クリティカル・タイプ相性メッセージ
+            let battleMessages = [];
+
+            if (damageResult.isCritical) {
+                battleMessages.push("きゅうしょに あたった！");
+            }
+
+            if (damageResult.effectiveness > 1) {
+                battleMessages.push("こうかは ばつぐんだ！");
+            } else if (damageResult.effectiveness < 1) {
+                battleMessages.push("こうかは いまひとつのようだ...");
+            }
+
+            defender.currentHp = Math.max(0, defender.currentHp - damageResult.damage);
             updateHpBars();
+
+            // クリティカルエフェクト
+            if (damageResult.isCritical) {
+                const sprite = defender === gameState.player ? elements.playerSprite : elements.enemySprite;
+                sprite.classList.add('critical-hit');
+                setTimeout(() => sprite.classList.remove('critical-hit'), 500);
+            }
 
             // 追加効果判定
             let statusApplied = false;
@@ -512,30 +734,51 @@ function executeMove(attacker, defender, move, callback) {
                 statusApplied = applyStatusEffect(defender, move.effect, move.effectChance);
             }
 
-            playDamageAnimation(defender === gameState.player, damage, () => {
-                if (defender.currentHp <= 0) {
-                    if (defender === gameState.enemy) {
-                        showMessage(`てきの ${defender.pokemon.name}は たおれた！`, () => {
-                            playVictorySound();
-                            showMessage("しょうぶに かった！", () => {
-                                resetBattle();
-                            });
-                        });
-                    } else {
-                        showMessage(`${defender.pokemon.name}は たおれた！`, () => {
-                            playDefeatSound();
-                            showMessage("しょうぶに まけた...", () => {
-                                resetBattle();
-                            });
-                        });
+            playDamageAnimation(defender === gameState.player, damageResult.damage, () => {
+                function showBattleMessages(index) {
+                    if (index >= battleMessages.length) {
+                        // バトル終了チェック
+                        if (defender.currentHp <= 0) {
+                            if (defender === gameState.enemy) {
+                                // 経験値獲得
+                                const expGained = Math.floor(defender.level * 15 + Math.random() * 10);
+                                const levelUpResult = gainExperience(gameState.player, expGained);
+
+                                showMessage(`てきの ${defender.pokemon.name}は たおれた！`, () => {
+                                    showMessage(`${expGained}の けいけんちを かくとく！`, () => {
+                                        if (levelUpResult) {
+                                            showLevelUpAnimation(gameState.player, levelUpResult, () => {
+                                                playVictorySound();
+                                                showMessage("しょうぶに かった！", () => resetBattle());
+                                            });
+                                        } else {
+                                            playVictorySound();
+                                            showMessage("しょうぶに かった！", () => resetBattle());
+                                        }
+                                    });
+                                });
+                            } else {
+                                showMessage(`${defender.pokemon.name}は たおれた！`, () => {
+                                    playDefeatSound();
+                                    showMessage("しょうぶに まけた...", () => resetBattle());
+                                });
+                            }
+                        } else if (statusApplied) {
+                            const statusMsg = move.effect === 'burn' ? `${defender.pokemon.name}は やけどを おった！` :
+                                             move.effect === 'poison' ? `${defender.pokemon.name}は どく状態になった！` : '';
+                            showMessage(statusMsg, callback);
+                        } else {
+                            callback();
+                        }
+                        return;
                     }
-                } else if (statusApplied) {
-                    const statusMsg = move.effect === 'burn' ? `${defender.pokemon.name}は やけどを おった！` :
-                                     move.effect === 'poison' ? `${defender.pokemon.name}は どく状態になった！` : '';
-                    showMessage(statusMsg, callback);
-                } else {
-                    callback();
+
+                    showMessage(battleMessages[index], () => {
+                        showBattleMessages(index + 1);
+                    });
                 }
+
+                showBattleMessages(0);
             });
         }
     });
@@ -696,6 +939,15 @@ document.addEventListener('DOMContentLoaded', () => {
             playerAttack(moveIndex);
         }
     });
+
+    // バトルログのイベントリスナー
+    if (elements.logToggle) {
+        elements.logToggle.addEventListener('click', toggleBattleLog);
+    }
+
+    if (elements.logClose) {
+        elements.logClose.addEventListener('click', toggleBattleLog);
+    }
 
     // 初期メッセージ表示後即座にバトル開始
     showMessage("やせいの フシギダネが とびだしてきた！", () => {
