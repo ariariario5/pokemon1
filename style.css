@@ -1,0 +1,354 @@
+@font-face {
+    font-family: 'Pokemon';
+    src: url('data:font/truetype;charset=utf-8;base64,') format('truetype');
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background: #000;
+    overflow: hidden;
+    user-select: none;
+}
+
+.game-container {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 60%, #90EE90 60%, #90EE90 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* バトル画面 */
+.battle-screen {
+    flex: 1;
+    position: relative;
+    padding: 20px;
+}
+
+/* 敵ポケモン側 */
+.enemy-side {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.enemy-pokemon {
+    background: #fff;
+    border: 3px solid #000;
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    min-width: 200px;
+}
+
+.enemy-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.pokemon-name {
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.level {
+    font-size: 12px;
+    color: #666;
+}
+
+.enemy-sprite {
+    margin-top: 10px;
+}
+
+.pokemon-sprite {
+    display: inline-block;
+}
+
+.enemy-sprite .pokemon-sprite {
+    width: 80px;
+    height: 80px;
+}
+
+.enemy-sprite svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* プレイヤーポケモン側 */
+.player-side {
+    position: absolute;
+    bottom: 100px;
+    left: 20px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.player-sprite {
+    margin-right: 20px;
+}
+
+.player-sprite .pokemon-sprite {
+    width: 100px;
+    height: 100px;
+}
+
+.player-sprite svg {
+    width: 100%;
+    height: 100%;
+}
+
+.player-pokemon {
+    background: #fff;
+    border: 3px solid #000;
+    border-radius: 10px;
+    padding: 8px 12px;
+    min-width: 220px;
+}
+
+.player-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+/* HPバー */
+.hp-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hp-label {
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.hp-container {
+    flex: 1;
+    height: 6px;
+    background: #000;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.hp-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(to right, #4CAF50 0%, #4CAF50 50%, #FFC107 50%, #FFC107 80%, #F44336 80%, #F44336 100%);
+    transition: width 0.5s ease-in-out;
+}
+
+.hp-text {
+    font-size: 12px;
+    min-width: 50px;
+    text-align: right;
+}
+
+/* バトルメニュー */
+.battle-menu {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 200px;
+    height: 120px;
+}
+
+.menu-container {
+    background: #fff;
+    border: 3px solid #000;
+    border-radius: 10px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    height: 100%;
+}
+
+.menu-option {
+    background: #f0f0f0;
+    border: 2px solid #666;
+    border-radius: 5px;
+    padding: 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-option:hover {
+    background: #e0e0e0;
+    border-color: #000;
+    transform: translateY(-1px);
+}
+
+.menu-option:active {
+    transform: translateY(1px);
+    background: #d0d0d0;
+}
+
+.menu-option.selected {
+    background: #4CAF50;
+    color: white;
+    border-color: #000;
+}
+
+/* 音楽コントロール */
+.music-controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+}
+
+.bgm-button {
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bgm-button:hover {
+    background: #f0f0f0;
+    transform: translateY(-1px);
+}
+
+.bgm-button:active {
+    transform: translateY(1px);
+}
+
+.bgm-button.off {
+    background: #ffebee;
+    color: #666;
+}
+
+/* メッセージボックス */
+.message-box {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: #fff;
+    border-top: 3px solid #000;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.message-text {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: bold;
+}
+
+.message-arrow {
+    font-size: 16px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* アニメーション */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes flash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.flash {
+    animation: flash 0.3s ease-in-out 3;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+    .enemy-side {
+        top: 10px;
+        right: 10px;
+    }
+
+    .player-side {
+        bottom: 120px;
+        left: 10px;
+    }
+
+    .battle-menu {
+        bottom: 80px;
+        right: 10px;
+        width: 180px;
+        height: 100px;
+    }
+
+    .menu-option {
+        font-size: 11px;
+        padding: 6px;
+    }
+
+    .enemy-sprite .pokemon-sprite {
+        width: 60px;
+        height: 60px;
+    }
+
+    .player-sprite .pokemon-sprite {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+/* ダメージ表示 */
+.damage-text {
+    position: absolute;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ff4444;
+    text-shadow: 1px 1px 0px #000;
+    pointer-events: none;
+    animation: damageFloat 1s ease-out forwards;
+}
+
+@keyframes damageFloat {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-30px) scale(1.2);
+        opacity: 0;
+    }
+}
