@@ -1,45 +1,70 @@
-// ポケモンデータ
+// ポケモンデータ（リアルなステータス付き）
 const pokemonData = {
     hitokage: {
         name: "ヒトカゲ",
         type: "ほのお",
         hp: 20,
-        attack: 12,
-        defense: 8,
+        attack: 12,      // 物理攻撃力
+        defense: 8,      // 物理防御力
+        spAttack: 14,    // 特殊攻撃力
+        spDefense: 10,   // 特殊防御力
+        speed: 15,       // すばやさ
         moves: [
-            { name: "ひのこ", power: 8, type: "ほのお", pp: 25 },
-            { name: "たいあたり", power: 6, type: "ノーマル", pp: 35 },
-            { name: "ひっかく", power: 7, type: "ノーマル", pp: 35 },
-            { name: "なきごえ", power: 0, type: "ノーマル", pp: 40, effect: "defense-down" }
+            { name: "ひのこ", power: 40, type: "ほのお", category: "special", pp: 25, accuracy: 100, effect: "burn", effectChance: 10 },
+            { name: "たいあたり", power: 30, type: "ノーマル", category: "physical", pp: 35, accuracy: 100 },
+            { name: "ひっかく", power: 35, type: "ノーマル", category: "physical", pp: 35, accuracy: 90 },
+            { name: "なきごえ", power: 0, type: "ノーマル", category: "status", pp: 40, accuracy: 100, effect: "attack-down", stages: 1 }
         ]
     },
     fushigidane: {
         name: "フシギダネ",
         type: "くさ",
         hp: 22,
-        attack: 10,
-        defense: 10,
+        attack: 10,      // 物理攻撃力
+        defense: 10,     // 物理防御力
+        spAttack: 12,    // 特殊攻撃力
+        spDefense: 12,   // 特殊防御力
+        speed: 12,       // すばやさ
         moves: [
-            { name: "はっぱカッター", power: 9, type: "くさ", pp: 25 },
-            { name: "たいあたり", power: 6, type: "ノーマル", pp: 35 },
-            { name: "つるのムチ", power: 8, type: "くさ", pp: 25 },
-            { name: "なきごえ", power: 0, type: "ノーマル", pp: 40, effect: "defense-down" }
+            { name: "はっぱカッター", power: 45, type: "くさ", category: "physical", pp: 25, accuracy: 95 },
+            { name: "たいあたり", power: 30, type: "ノーマル", category: "physical", pp: 35, accuracy: 100 },
+            { name: "つるのムチ", power: 35, type: "くさ", category: "physical", pp: 25, accuracy: 100 },
+            { name: "どくのこな", power: 0, type: "くさ", category: "status", pp: 35, accuracy: 75, effect: "poison" }
         ]
     }
 };
 
-// ゲーム状態
+// ゲーム状態（拡張版）
 let gameState = {
     player: {
         pokemon: { ...pokemonData.hitokage },
-        currentHp: 20
+        currentHp: 20,
+        statStages: {
+            attack: 0,
+            defense: 0,
+            spAttack: 0,
+            spDefense: 0,
+            speed: 0
+        },
+        statusCondition: null, // burn, poison, paralysis, freeze, sleep
+        statusTurns: 0
     },
     enemy: {
         pokemon: { ...pokemonData.fushigidane },
-        currentHp: 22
+        currentHp: 22,
+        statStages: {
+            attack: 0,
+            defense: 0,
+            spAttack: 0,
+            spDefense: 0,
+            speed: 0
+        },
+        statusCondition: null,
+        statusTurns: 0
     },
     turn: "player",
     battlePhase: "menu", // menu, move-select, battle, message
+    turnOrder: [], // 先攻後攻の順番
     messageQueue: [],
     currentMessage: 0
 };
@@ -247,18 +272,118 @@ function showMessage(message, callback) {
     }, 500);
 }
 
-// ダメージ計算
-function calculateDamage(attacker, defender, move) {
+// ステータス計算（ランク補正込み）
+function getEffectiveStat(pokemon, statName, statStages) {
+    const baseStat = pokemon[statName];
+    const stage = statStages[statName];
+
+    // ポケモンの能力ランク補正
+    let modifier = 1.0;
+    if (stage > 0) {
+        modifier = (2 + stage) / 2;
+    } else if (stage < 0) {
+        modifier = 2 / (2 + Math.abs(stage));
+    }
+
+    return Math.floor(baseStat * modifier);
+}
+
+// 先攻後攻判定
+function determineTurnOrder(playerMove, enemyMove) {
+    const playerSpeed = getEffectiveStat(gameState.player.pokemon, 'speed', gameState.player.statStages);
+    const enemySpeed = getEffectiveStat(gameState.enemy.pokemon, 'speed', gameState.enemy.statStages);
+
+    // まひ状態はすばやさ1/4
+    const finalPlayerSpeed = gameState.player.statusCondition === 'paralysis' ? Math.floor(playerSpeed / 4) : playerSpeed;
+    const finalEnemySpeed = gameState.enemy.statusCondition === 'paralysis' ? Math.floor(enemySpeed / 4) : enemySpeed;
+
+    if (finalPlayerSpeed > finalEnemySpeed) {
+        return ['player', 'enemy'];
+    } else if (finalEnemySpeed > finalPlayerSpeed) {
+        return ['enemy', 'player'];
+    } else {
+        // 同速の場合はランダム
+        return Math.random() < 0.5 ? ['player', 'enemy'] : ['enemy', 'player'];
+    }
+}
+
+// ダメージ計算（物理/特殊分け）
+function calculateDamage(attacker, attackerData, defender, defenderData, move) {
     if (move.power === 0) return 0;
 
+    // 命中判定
+    if (Math.random() * 100 > move.accuracy) {
+        return -1; // 外れ
+    }
+
+    let attackStat, defenseStat;
+
+    if (move.category === 'physical') {
+        attackStat = getEffectiveStat(attacker.pokemon, 'attack', attacker.statStages);
+        defenseStat = getEffectiveStat(defender.pokemon, 'defense', defender.statStages);
+    } else if (move.category === 'special') {
+        attackStat = getEffectiveStat(attacker.pokemon, 'spAttack', attacker.statStages);
+        defenseStat = getEffectiveStat(defender.pokemon, 'spDefense', defender.statStages);
+    } else {
+        return 0; // ステータス技
+    }
+
+    // やけど状態は物理攻撃力半減
+    if (attacker.statusCondition === 'burn' && move.category === 'physical') {
+        attackStat = Math.floor(attackStat / 2);
+    }
+
     const baseDamage = Math.floor(
-        ((2 * 5 + 10) / 250) * (attacker.attack / defender.defense) * move.power + 2
+        ((2 * 5 + 10) / 250) * (attackStat / defenseStat) * move.power + 2
     );
 
     // ランダム要素 (85-100%)
     const randomFactor = (Math.random() * 0.15 + 0.85);
 
     return Math.max(1, Math.floor(baseDamage * randomFactor));
+}
+
+// 状態異常関連
+function applyStatusEffect(target, effect, effectChance = 100) {
+    if (target.statusCondition !== null) return false; // 既に状態異常
+
+    if (Math.random() * 100 <= effectChance) {
+        target.statusCondition = effect;
+        target.statusTurns = 0;
+        return true;
+    }
+    return false;
+}
+
+function applyStatStageChange(target, stat, stages) {
+    const currentStage = target.statStages[stat];
+    const newStage = Math.max(-6, Math.min(6, currentStage + stages));
+    target.statStages[stat] = newStage;
+    return newStage !== currentStage;
+}
+
+function processStatusDamage(target) {
+    let damage = 0;
+    if (target.statusCondition === 'burn') {
+        damage = Math.max(1, Math.floor(target.pokemon.hp / 16));
+    } else if (target.statusCondition === 'poison') {
+        damage = Math.max(1, Math.floor(target.pokemon.hp / 8));
+    }
+
+    if (damage > 0) {
+        target.currentHp = Math.max(0, target.currentHp - damage);
+        return damage;
+    }
+    return 0;
+}
+
+function getStatusMessage(pokemon, status) {
+    const messages = {
+        burn: `${pokemon.name}は やけどで くるしんでいる！`,
+        poison: `${pokemon.name}は どくで くるしんでいる！`,
+        paralysis: `${pokemon.name}は からだが しびれて うごけない！`
+    };
+    return messages[status] || '';
 }
 
 // バトルアニメーション
@@ -308,82 +433,158 @@ function playDamageAnimation(isPlayer, damage, callback) {
 // プレイヤーの攻撃
 function playerAttack(moveIndex) {
     const move = gameState.player.pokemon.moves[moveIndex];
+
+    // 敵の技をランダム選択
+    const availableEnemyMoves = gameState.enemy.pokemon.moves.filter(m => m.pp > 0);
+    const enemyMove = availableEnemyMoves[Math.floor(Math.random() * availableEnemyMoves.length)];
+
+    // 先攻後攻を決定
+    const turnOrder = determineTurnOrder(move, enemyMove);
+    gameState.turnOrder = [
+        { type: turnOrder[0], move: turnOrder[0] === 'player' ? move : enemyMove },
+        { type: turnOrder[1], move: turnOrder[1] === 'player' ? move : enemyMove }
+    ];
+
     gameState.battlePhase = "battle";
+    executeTurn(0); // 最初のターンを実行
+}
 
-    showMessage(`${gameState.player.pokemon.name}の ${move.name}！`, () => {
-        playAttackAnimation(true, () => {
-            if (move.power > 0) {
-                const damage = calculateDamage(
-                    gameState.player.pokemon,
-                    gameState.enemy.pokemon,
-                    move
-                );
+function executeTurn(turnIndex) {
+    if (turnIndex >= gameState.turnOrder.length) {
+        // ターン終了処理
+        endTurn();
+        return;
+    }
 
-                gameState.enemy.currentHp = Math.max(0, gameState.enemy.currentHp - damage);
-                updateHpBars();
+    const currentTurn = gameState.turnOrder[turnIndex];
+    const isPlayer = currentTurn.type === 'player';
+    const attacker = isPlayer ? gameState.player : gameState.enemy;
+    const defender = isPlayer ? gameState.enemy : gameState.player;
 
-                playDamageAnimation(false, damage, () => {
-                    if (gameState.enemy.currentHp <= 0) {
-                        showMessage(`てきの ${gameState.enemy.pokemon.name}は たおれた！`, () => {
-                            playVictorySound(); // 勝利音を追加
+    // まひ状態での行動不能チェック
+    if (attacker.statusCondition === 'paralysis' && Math.random() < 0.25) {
+        showMessage(getStatusMessage(attacker.pokemon, 'paralysis'), () => {
+            executeTurn(turnIndex + 1);
+        });
+        return;
+    }
+
+    const move = currentTurn.move;
+    showMessage(`${attacker.pokemon.name}の ${move.name}！`, () => {
+        executeMove(attacker, defender, move, () => {
+            executeTurn(turnIndex + 1);
+        });
+    });
+}
+
+function executeMove(attacker, defender, move, callback) {
+    playAttackAnimation(attacker === gameState.player, () => {
+        if (move.category === 'status') {
+            // ステータス技の処理
+            if (move.effect === 'attack-down') {
+                if (applyStatStageChange(defender, 'attack', -move.stages)) {
+                    showMessage(`${defender.pokemon.name}の こうげきが さがった！`, callback);
+                } else {
+                    showMessage(`${defender.pokemon.name}の こうげきは もう さがらない！`, callback);
+                }
+            } else if (move.effect === 'poison') {
+                if (applyStatusEffect(defender, 'poison')) {
+                    showMessage(`${defender.pokemon.name}は どく状態になった！`, callback);
+                } else {
+                    showMessage(`こうかが なかった...`, callback);
+                }
+            }
+        } else {
+            // 攻撃技の処理
+            const damage = calculateDamage(attacker, attacker, defender, defender, move);
+
+            if (damage === -1) {
+                showMessage(`${attacker.pokemon.name}の こうげきは はずれた！`, callback);
+                return;
+            }
+
+            defender.currentHp = Math.max(0, defender.currentHp - damage);
+            updateHpBars();
+
+            // 追加効果判定
+            let statusApplied = false;
+            if (move.effect && move.effectChance) {
+                statusApplied = applyStatusEffect(defender, move.effect, move.effectChance);
+            }
+
+            playDamageAnimation(defender === gameState.player, damage, () => {
+                if (defender.currentHp <= 0) {
+                    if (defender === gameState.enemy) {
+                        showMessage(`てきの ${defender.pokemon.name}は たおれた！`, () => {
+                            playVictorySound();
                             showMessage("しょうぶに かった！", () => {
                                 resetBattle();
                             });
                         });
                     } else {
-                        enemyTurn();
+                        showMessage(`${defender.pokemon.name}は たおれた！`, () => {
+                            playDefeatSound();
+                            showMessage("しょうぶに まけた...", () => {
+                                resetBattle();
+                            });
+                        });
                     }
-                });
-            } else if (move.effect === "defense-down") {
-                gameState.enemy.pokemon.defense = Math.max(1, gameState.enemy.pokemon.defense - 1);
-                showMessage(`てきの ${gameState.enemy.pokemon.name}の ぼうぎょが さがった！`, () => {
-                    enemyTurn();
-                });
-            }
-        });
+                } else if (statusApplied) {
+                    const statusMsg = move.effect === 'burn' ? `${defender.pokemon.name}は やけどを おった！` :
+                                     move.effect === 'poison' ? `${defender.pokemon.name}は どく状態になった！` : '';
+                    showMessage(statusMsg, callback);
+                } else {
+                    callback();
+                }
+            });
+        }
     });
 }
 
-// 敵のターン
-function enemyTurn() {
-    const availableMoves = gameState.enemy.pokemon.moves.filter(move => move.pp > 0);
-    const randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+function endTurn() {
+    // 状態異常ダメージ処理
+    let statusMessages = [];
 
-    setTimeout(() => {
-        showMessage(`てきの ${gameState.enemy.pokemon.name}の ${randomMove.name}！`, () => {
-            playAttackAnimation(false, () => {
-                if (randomMove.power > 0) {
-                    const damage = calculateDamage(
-                        gameState.enemy.pokemon,
-                        gameState.player.pokemon,
-                        randomMove
-                    );
+    const playerStatusDamage = processStatusDamage(gameState.player);
+    const enemyStatusDamage = processStatusDamage(gameState.enemy);
 
-                    gameState.player.currentHp = Math.max(0, gameState.player.currentHp - damage);
-                    updateHpBars();
+    if (playerStatusDamage > 0) {
+        statusMessages.push(getStatusMessage(gameState.player.pokemon, gameState.player.statusCondition));
+    }
+    if (enemyStatusDamage > 0) {
+        statusMessages.push(getStatusMessage(gameState.enemy.pokemon, gameState.enemy.statusCondition));
+    }
 
-                    playDamageAnimation(true, damage, () => {
-                        if (gameState.player.currentHp <= 0) {
-                            showMessage(`${gameState.player.pokemon.name}は たおれた！`, () => {
-                                playDefeatSound(); // 敗北音を追加
-                                showMessage("しょうぶに まけた...", () => {
-                                    resetBattle();
-                                });
-                            });
-                        } else {
-                            playerTurn();
-                        }
-                    });
-                } else if (randomMove.effect === "defense-down") {
-                    gameState.player.pokemon.defense = Math.max(1, gameState.player.pokemon.defense - 1);
-                    showMessage(`${gameState.player.pokemon.name}の ぼうぎょが さがった！`, () => {
-                        playerTurn();
-                    });
-                }
-            });
+    function showStatusMessages(index) {
+        if (index >= statusMessages.length) {
+            updateHpBars();
+            // 状態異常で倒れていないかチェック
+            if (gameState.player.currentHp <= 0) {
+                showMessage(`${gameState.player.pokemon.name}は たおれた！`, () => {
+                    showMessage("しょうぶに まけた...", () => resetBattle());
+                });
+            } else if (gameState.enemy.currentHp <= 0) {
+                showMessage(`てきの ${gameState.enemy.pokemon.name}は たおれた！`, () => {
+                    showMessage("しょうぶに かった！", () => resetBattle());
+                });
+            } else {
+                playerTurn();
+            }
+            return;
+        }
+
+        showMessage(statusMessages[index], () => {
+            showStatusMessages(index + 1);
         });
-    }, 1000);
+    }
+
+    if (statusMessages.length > 0) {
+        showStatusMessages(0);
+    } else {
+        playerTurn();
+    }
 }
+
 
 // プレイヤーのターン
 function playerTurn() {
@@ -397,8 +598,16 @@ function playerTurn() {
 function resetBattle() {
     gameState.player.currentHp = gameState.player.pokemon.hp;
     gameState.enemy.currentHp = gameState.enemy.pokemon.hp;
-    gameState.player.pokemon.defense = pokemonData.hitokage.defense;
-    gameState.enemy.pokemon.defense = pokemonData.fushigidane.defense;
+
+    // ステータス変化リセット
+    gameState.player.statStages = { attack: 0, defense: 0, spAttack: 0, spDefense: 0, speed: 0 };
+    gameState.enemy.statStages = { attack: 0, defense: 0, spAttack: 0, spDefense: 0, speed: 0 };
+
+    // 状態異常リセット
+    gameState.player.statusCondition = null;
+    gameState.player.statusTurns = 0;
+    gameState.enemy.statusCondition = null;
+    gameState.enemy.statusTurns = 0;
 
     updateHpBars();
     playerTurn();
@@ -479,9 +688,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 技メニューのクリックイベント
     elements.movesMenu.addEventListener('click', (e) => {
-        if (e.target.classList.contains('menu-option')) {
+        const menuOption = e.target.closest('.menu-option');
+        if (menuOption) {
             playMenuSound(); // メニュー音を追加
-            const moveIndex = Array.from(elements.movesMenu.children).indexOf(e.target);
+            const moveIndex = parseInt(menuOption.dataset.move);
             elements.movesMenu.style.display = 'none';
             playerAttack(moveIndex);
         }
