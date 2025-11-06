@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ポケモンバトル - 初代スタイル</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,7 +18,7 @@
                 <div class="enemy-pokemon">
                     <div class="enemy-info">
                         <div class="pokemon-name" id="enemy-name">フシギダネ</div>
-                        <div class="level">Lv.5</div>
+                        <div class="level">Lv. 5</div>
                     </div>
                     <div class="hp-bar">
                         <div class="hp-label">HP:</div>
@@ -104,7 +107,7 @@
                 <div class="player-pokemon">
                     <div class="player-info">
                         <div class="pokemon-name" id="player-name">ヒトカゲ</div>
-                        <div class="level">Lv.5</div>
+                        <div class="level">Lv. 5</div>
                     </div>
                     <div class="hp-bar">
                         <div class="hp-label">HP:</div>
@@ -138,7 +141,14 @@
 
         <!-- 音楽コントロール -->
         <div class="music-controls">
-            <button id="bgm-toggle" class="bgm-button">🎵 BGM ON</button>
+            <div class="music-panel">
+                <button id="bgm-toggle" class="bgm-button">🎵 BGM</button>
+                <div class="volume-control">
+                    <span class="volume-label">音量</span>
+                    <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="30">
+                    <span id="volume-display" class="volume-display">30</span>
+                </div>
+            </div>
         </div>
 
         <!-- メッセージボックス -->

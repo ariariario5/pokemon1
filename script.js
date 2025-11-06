@@ -51,29 +51,50 @@ gameState.enemy.currentHp = gameState.enemy.pokemon.hp;
 // サウンドエフェクト (Web Audio API使用)
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-function playSound(frequency, duration, type = 'sine') {
+// マスター音量制御
+let masterVolume = 0.3;
+const masterGain = audioContext.createGain();
+masterGain.gain.setValueAtTime(masterVolume, audioContext.currentTime);
+masterGain.connect(audioContext.destination);
+
+function playSound(frequency, duration, type = 'sine', volume = 1.0) {
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
     oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    gainNode.connect(masterGain);
 
     oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
     oscillator.type = type;
 
+    const finalVolume = volume * 0.1;
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+    gainNode.gain.linearRampToValueAtTime(finalVolume, audioContext.currentTime + 0.01);
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
 
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + duration);
+
+    return oscillator;
+}
+
+function playAttackCountdown(callback) {
+    // "ワン・ツー・スリー" のカウントダウンSE
+    playSound(600, 0.15, 'square', 0.8); // ワン
+    setTimeout(() => {
+        playSound(700, 0.15, 'square', 0.9); // ツー
+    }, 200);
+    setTimeout(() => {
+        playSound(800, 0.20, 'square', 1.0); // スリー
+        if (callback) setTimeout(callback, 100);
+    }, 400);
 }
 
 function playAttackSound() {
     // 攻撃音のシーケンス
-    playSound(300, 0.1, 'square');
-    setTimeout(() => playSound(250, 0.1, 'square'), 50);
-    setTimeout(() => playSound(200, 0.15, 'square'), 100);
+    playSound(300, 0.1, 'square', 1.2);
+    setTimeout(() => playSound(250, 0.1, 'square', 1.1), 50);
+    setTimeout(() => playSound(200, 0.15, 'square', 1.0), 100);
 }
 
 function playDamageSound() {
@@ -87,10 +108,41 @@ function playMenuSound() {
 }
 
 function playVictorySound() {
-    // 勝利音のメロディー
-    const notes = [523, 659, 784, 1047]; // C, E, G, C
-    notes.forEach((note, index) => {
-        setTimeout(() => playSound(note, 0.3, 'sine'), index * 200);
+    // 勝利のファンファーレ (より長く豪華に)
+    const victoryMelody = [
+        {note: 523, duration: 0.15}, // C
+        {note: 659, duration: 0.15}, // E
+        {note: 784, duration: 0.15}, // G
+        {note: 1047, duration: 0.25}, // C (高)
+        {note: 784, duration: 0.15}, // G
+        {note: 1047, duration: 0.15}, // C (高)
+        {note: 1319, duration: 0.4}  // E (高)
+    ];
+
+    let currentTime = 0;
+    victoryMelody.forEach(({note, duration}) => {
+        setTimeout(() => {
+            playSound(note, duration, 'sine', 1.5);
+        }, currentTime * 1000);
+        currentTime += duration;
+    });
+}
+
+function playDefeatSound() {
+    // 敗北の短いジングル
+    const defeatMelody = [
+        {note: 392, duration: 0.3}, // G
+        {note: 349, duration: 0.3}, // F
+        {note: 311, duration: 0.3}, // Eb
+        {note: 262, duration: 0.6}  // C
+    ];
+
+    let currentTime = 0;
+    defeatMelody.forEach(({note, duration}) => {
+        setTimeout(() => {
+            playSound(note, duration, 'sine', 1.2);
+        }, currentTime * 1000);
+        currentTime += duration;
     });
 }
 
@@ -163,7 +215,7 @@ function playBattleBGM() {
                     const gainNode = audioContext.createGain();
 
                     oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
+                    gainNode.connect(masterGain);
 
                     oscillator.frequency.setValueAtTime(note.note, audioContext.currentTime);
                     oscillator.type = 'square';
@@ -193,7 +245,7 @@ function playBattleBGM() {
                     const gainNode = audioContext.createGain();
 
                     oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
+                    gainNode.connect(masterGain);
 
                     oscillator.frequency.setValueAtTime(note.note, audioContext.currentTime);
                     oscillator.type = 'triangle';
@@ -257,6 +309,47 @@ function initializeDisplay() {
     elements.playerCurrentHp.textContent = gameState.player.currentHp;
     elements.playerMaxHp.textContent = gameState.player.pokemon.hp;
     updateHpBars();
+
+    // 登場アニメーションを追加
+    startBattleAnimation();
+}
+
+function startBattleAnimation() {
+    // ポケモンスプライトと情報を非表示にしてから登場アニメーション開始
+    const enemySprite = document.querySelector('.enemy-sprite');
+    const playerSprite = document.querySelector('.player-sprite');
+    const enemyPokemon = document.querySelector('.enemy-pokemon');
+    const playerPokemon = document.querySelector('.player-pokemon');
+
+    // 最初は非表示
+    enemySprite.style.opacity = '0';
+    playerSprite.style.opacity = '0';
+    enemyPokemon.style.opacity = '0';
+    playerPokemon.style.opacity = '0';
+
+    // 敵ポケモン登場 (右から)
+    setTimeout(() => {
+        enemySprite.style.opacity = '1';
+        enemySprite.classList.add('pokemon-enter-enemy');
+    }, 500);
+
+    // 敵ポケモン情報表示
+    setTimeout(() => {
+        enemyPokemon.style.opacity = '1';
+        enemyPokemon.classList.add('pokemon-info-enter');
+    }, 800);
+
+    // プレイヤーポケモン登場 (左から)
+    setTimeout(() => {
+        playerSprite.style.opacity = '1';
+        playerSprite.classList.add('pokemon-enter-player');
+    }, 1500);
+
+    // プレイヤーポケモン情報表示
+    setTimeout(() => {
+        playerPokemon.style.opacity = '1';
+        playerPokemon.classList.add('pokemon-info-enter');
+    }, 1800);
 }
 
 // HPバー更新
@@ -331,8 +424,16 @@ function playAttackAnimation(isPlayer, callback) {
 
 function playDamageAnimation(isPlayer, damage, callback) {
     const sprite = isPlayer ? elements.playerSprite : elements.enemySprite;
+    const gameContainer = document.querySelector('.game-container');
+
     sprite.classList.add('flash');
+    gameContainer.classList.add('screen-shake'); // 画面振動を追加
     playDamageSound(); // ダメージ音を追加
+
+    // 画面振動を停止
+    setTimeout(() => {
+        gameContainer.classList.remove('screen-shake');
+    }, 300);
 
     // ダメージ数値表示
     const damageText = document.createElement('div');
@@ -359,7 +460,9 @@ function playerAttack(moveIndex) {
     gameState.battlePhase = "battle";
 
     showMessage(`${gameState.player.pokemon.name}の ${move.name}！`, () => {
-        playAttackAnimation(true, () => {
+        // カウントダウン後に攻撃アニメーション
+        playAttackCountdown(() => {
+            playAttackAnimation(true, () => {
             if (move.power > 0) {
                 const damage = calculateDamage(
                     gameState.player.pokemon,
@@ -413,6 +516,7 @@ function enemyTurn() {
                     playDamageAnimation(true, damage, () => {
                         if (gameState.player.currentHp <= 0) {
                             showMessage(`${gameState.player.pokemon.name}は たおれた！`, () => {
+                                playDefeatSound(); // 敗北音を追加
                                 showMessage("しょうぶに まけた...", () => {
                                     resetBattle();
                                 });
@@ -457,15 +561,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // BGMトグルボタンの設定
     const bgmToggle = document.getElementById('bgm-toggle');
+    const volumeSlider = document.getElementById('volume-slider');
+    const volumeDisplay = document.getElementById('volume-display');
+
+    // 音量スライダーの処理
+    volumeSlider.addEventListener('input', (e) => {
+        const volume = e.target.value / 100;
+        masterVolume = volume;
+        masterGain.gain.setValueAtTime(masterVolume, audioContext.currentTime);
+        volumeDisplay.textContent = e.target.value;
+    });
 
     bgmToggle.addEventListener('click', () => {
         if (bgmIsPlaying) {
             stopBattleBGM();
-            bgmToggle.textContent = '🎵 BGM OFF';
+            bgmToggle.textContent = '🎵 OFF';
             bgmToggle.classList.add('off');
         } else {
             playBattleBGM();
-            bgmToggle.textContent = '🎵 BGM ON';
+            bgmToggle.textContent = '🎵 ON';
             bgmToggle.classList.remove('off');
         }
     });
@@ -520,8 +634,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 初期メッセージ
-    showMessage("やせいの フシギダネが とびだしてきた！", () => {
-        playerTurn();
-    });
+    // 初期メッセージ (登場アニメーション後に表示)
+    setTimeout(() => {
+        showMessage("やせいの フシギダネが とびだしてきた！", () => {
+            playerTurn();
+        });
+    }, 2500);
 });
