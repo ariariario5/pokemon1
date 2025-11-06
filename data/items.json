@@ -1,0 +1,59 @@
+[
+  {
+    "id": "potion",
+    "name": "キズぐすり",
+    "hp": 20,
+    "inBattle": true,
+    "description": "HPを20回復する"
+  },
+  {
+    "id": "super_potion",
+    "name": "いいキズぐすり",
+    "hp": 50,
+    "inBattle": true,
+    "description": "HPを50回復する"
+  },
+  {
+    "id": "hyper_potion",
+    "name": "すごいキズぐすり",
+    "hp": 200,
+    "inBattle": true,
+    "description": "HPを200回復する"
+  },
+  {
+    "id": "full_restore",
+    "name": "かいふくのくすり",
+    "hp": 999,
+    "statusClear": ["burn", "poison", "paralysis", "freeze", "sleep"],
+    "inBattle": true,
+    "description": "HPと状態異常を完全回復"
+  },
+  {
+    "id": "antidote",
+    "name": "どくけし",
+    "statusClear": ["poison"],
+    "inBattle": true,
+    "description": "どく状態を回復する"
+  },
+  {
+    "id": "paralyze_heal",
+    "name": "まひなおし",
+    "statusClear": ["paralysis"],
+    "inBattle": true,
+    "description": "まひ状態を回復する"
+  },
+  {
+    "id": "burn_heal",
+    "name": "やけどなおし",
+    "statusClear": ["burn"],
+    "inBattle": true,
+    "description": "やけど状態を回復する"
+  },
+  {
+    "id": "awakening",
+    "name": "ねむけざまし",
+    "statusClear": ["sleep"],
+    "inBattle": true,
+    "description": "ねむり状態を回復する"
+  }
+]

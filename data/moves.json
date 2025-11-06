@@ -1,0 +1,137 @@
+{
+  "tackle": {
+    "name": "たいあたり",
+    "type": "normal",
+    "category": "physical",
+    "power": 35,
+    "accuracy": 95,
+    "pp": 35,
+    "description": "全身で相手にぶつかって攻撃する"
+  },
+  "scratch": {
+    "name": "ひっかく",
+    "type": "normal",
+    "category": "physical",
+    "power": 40,
+    "accuracy": 100,
+    "pp": 35,
+    "description": "硬くとがったツメで相手をひっかいて攻撃する"
+  },
+  "ember": {
+    "name": "ひのこ",
+    "type": "fire",
+    "category": "special",
+    "power": 40,
+    "accuracy": 100,
+    "pp": 25,
+    "ailment": {"burn": 0.1},
+    "description": "小さな炎を相手に放射して攻撃する"
+  },
+  "water_gun": {
+    "name": "みずでっぽう",
+    "type": "water",
+    "category": "special",
+    "power": 40,
+    "accuracy": 100,
+    "pp": 25,
+    "description": "水を勢いよく相手に発射して攻撃する"
+  },
+  "vine_whip": {
+    "name": "つるのムチ",
+    "type": "grass",
+    "category": "physical",
+    "power": 35,
+    "accuracy": 100,
+    "pp": 25,
+    "description": "つるのようなムチで相手をたたいて攻撃する"
+  },
+  "gust": {
+    "name": "かぜおこし",
+    "type": "flying",
+    "category": "special",
+    "power": 40,
+    "accuracy": 100,
+    "pp": 35,
+    "description": "翼で突風を起こして相手を攻撃する"
+  },
+  "quick_attack": {
+    "name": "でんこうせっか",
+    "type": "normal",
+    "category": "physical",
+    "power": 40,
+    "accuracy": 100,
+    "pp": 30,
+    "priority": 1,
+    "description": "素早い動きで相手の先手を取る"
+  },
+  "hyper_fang": {
+    "name": "ひっさつまえば",
+    "type": "normal",
+    "category": "physical",
+    "power": 80,
+    "accuracy": 90,
+    "pp": 15,
+    "ailment": {"flinch": 0.1},
+    "description": "鋭い前歯で強くかみついて攻撃する"
+  },
+  "growl": {
+    "name": "なきごえ",
+    "type": "normal",
+    "category": "status",
+    "power": 0,
+    "accuracy": 100,
+    "pp": 40,
+    "statChange": {"atk": -1},
+    "description": "かわいい鳴き声で相手の攻撃力を下げる"
+  },
+  "tail_whip": {
+    "name": "しっぽをふる",
+    "type": "normal",
+    "category": "status",
+    "power": 0,
+    "accuracy": 100,
+    "pp": 30,
+    "statChange": {"def": -1},
+    "description": "しっぽを振って相手の防御力を下げる"
+  },
+  "sand_attack": {
+    "name": "すなかけ",
+    "type": "ground",
+    "category": "status",
+    "power": 0,
+    "accuracy": 100,
+    "pp": 15,
+    "statChange": {"accuracy": -1},
+    "description": "砂をかけて相手の命中率を下げる"
+  },
+  "leech_seed": {
+    "name": "やどりぎのタネ",
+    "type": "grass",
+    "category": "status",
+    "power": 0,
+    "accuracy": 90,
+    "pp": 10,
+    "ailment": {"leech_seed": 1.0},
+    "description": "種を植えて毎ターンHPを吸い取る"
+  },
+  "smokescreen": {
+    "name": "えんまく",
+    "type": "normal",
+    "category": "status",
+    "power": 0,
+    "accuracy": 100,
+    "pp": 20,
+    "statChange": {"accuracy": -1},
+    "description": "煙で相手の命中率を下げる"
+  },
+  "withdraw": {
+    "name": "からにこもる",
+    "type": "water",
+    "category": "status",
+    "power": 0,
+    "accuracy": 100,
+    "pp": 40,
+    "statChange": {"def": 1},
+    "description": "殻にこもって防御力を上げる"
+  }
+}

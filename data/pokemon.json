@@ -1,0 +1,47 @@
+[
+  {
+    "id": "mon001",
+    "name": "フシギダネ",
+    "types": ["grass", "poison"],
+    "base": { "hp": 45, "atk": 49, "def": 49, "spa": 65, "spd": 65, "spe": 45 },
+    "front": "assets/sprites/front/mon001.png",
+    "back": "assets/sprites/back/mon001.png",
+    "learnset": ["tackle", "vine_whip", "growl", "leech_seed"]
+  },
+  {
+    "id": "mon004",
+    "name": "ヒトカゲ",
+    "types": ["fire"],
+    "base": { "hp": 39, "atk": 52, "def": 43, "spa": 60, "spd": 50, "spe": 65 },
+    "front": "assets/sprites/front/mon004.png",
+    "back": "assets/sprites/back/mon004.png",
+    "learnset": ["scratch", "ember", "growl", "smokescreen"]
+  },
+  {
+    "id": "mon007",
+    "name": "ゼニガメ",
+    "types": ["water"],
+    "base": { "hp": 44, "atk": 48, "def": 65, "spa": 50, "spd": 64, "spe": 43 },
+    "front": "assets/sprites/front/mon007.png",
+    "back": "assets/sprites/back/mon007.png",
+    "learnset": ["tackle", "water_gun", "tail_whip", "withdraw"]
+  },
+  {
+    "id": "mon016",
+    "name": "ポッポ",
+    "types": ["normal", "flying"],
+    "base": { "hp": 40, "atk": 45, "def": 40, "spa": 35, "spd": 35, "spe": 56 },
+    "front": "assets/sprites/front/mon016.png",
+    "back": "assets/sprites/back/mon016.png",
+    "learnset": ["tackle", "gust", "sand_attack", "quick_attack"]
+  },
+  {
+    "id": "mon019",
+    "name": "コラッタ",
+    "types": ["normal"],
+    "base": { "hp": 30, "atk": 56, "def": 35, "spa": 25, "spd": 35, "spe": 72 },
+    "front": "assets/sprites/front/mon019.png",
+    "back": "assets/sprites/back/mon019.png",
+    "learnset": ["tackle", "quick_attack", "tail_whip", "hyper_fang"]
+  }
+]

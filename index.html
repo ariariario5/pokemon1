@@ -29,32 +29,7 @@
                 </div>
                 <div class="enemy-sprite">
                     <div id="enemy-sprite-img" class="pokemon-sprite enemy-pokemon-sprite">
-                        <!-- フシギダネのSVG -->
-                        <svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
-                            <!-- 体 -->
-                            <ellipse cx="40" cy="50" rx="25" ry="20" fill="#4CAF50"/>
-                            <!-- 背中の模様 -->
-                            <ellipse cx="30" cy="45" rx="8" ry="6" fill="#2E7D32"/>
-                            <ellipse cx="50" cy="45" rx="8" ry="6" fill="#2E7D32"/>
-                            <!-- 頭 -->
-                            <circle cx="40" cy="30" r="18" fill="#4CAF50"/>
-                            <!-- 目 -->
-                            <ellipse cx="35" cy="28" rx="3" ry="4" fill="#000"/>
-                            <ellipse cx="45" cy="28" rx="3" ry="4" fill="#000"/>
-                            <ellipse cx="36" cy="27" rx="1" ry="2" fill="#fff"/>
-                            <ellipse cx="46" cy="27" rx="1" ry="2" fill="#fff"/>
-                            <!-- 鼻 -->
-                            <ellipse cx="40" cy="32" rx="1.5" ry="1" fill="#2E7D32"/>
-                            <!-- 口 -->
-                            <path d="M 37 35 Q 40 37 43 35" stroke="#2E7D32" stroke-width="1" fill="none"/>
-                            <!-- 足 -->
-                            <ellipse cx="30" cy="65" rx="6" ry="8" fill="#4CAF50"/>
-                            <ellipse cx="50" cy="65" rx="6" ry="8" fill="#4CAF50"/>
-                            <!-- 芽 -->
-                            <path d="M 40 15 L 35 8 L 45 8 Z" fill="#66BB6A"/>
-                            <path d="M 40 15 L 32 5 L 40 10 Z" fill="#81C784"/>
-                            <path d="M 40 15 L 48 5 L 40 10 Z" fill="#81C784"/>
-                        </svg>
+                        <!-- 敵ポケモンスプライトは動的に更新される -->
                     </div>
                 </div>
             </div>
@@ -63,45 +38,7 @@
             <div class="player-side">
                 <div class="player-sprite">
                     <div id="player-sprite-img" class="pokemon-sprite player-pokemon-sprite">
-                        <!-- ヒトカゲのSVG -->
-                        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                            <!-- 尻尾の炎 -->
-                            <ellipse cx="85" cy="40" rx="8" ry="12" fill="#FF5722"/>
-                            <ellipse cx="85" cy="35" rx="5" ry="8" fill="#FF9800"/>
-                            <ellipse cx="85" cy="32" rx="3" ry="5" fill="#FFC107"/>
-                            <!-- 尻尾 -->
-                            <path d="M 60 50 Q 75 45 80 40" stroke="#FF6B35" stroke-width="8" fill="none"/>
-                            <!-- 体 -->
-                            <ellipse cx="40" cy="60" rx="18" ry="25" fill="#FF6B35"/>
-                            <!-- お腹 -->
-                            <ellipse cx="40" cy="62" rx="12" ry="18" fill="#FFB74D"/>
-                            <!-- 頭 -->
-                            <circle cx="40" cy="35" r="20" fill="#FF6B35"/>
-                            <!-- 鼻先 -->
-                            <ellipse cx="40" cy="42" rx="8" ry="6" fill="#FFB74D"/>
-                            <!-- 目 -->
-                            <ellipse cx="35" cy="32" rx="3" ry="5" fill="#000"/>
-                            <ellipse cx="45" cy="32" rx="3" ry="5" fill="#000"/>
-                            <ellipse cx="36" cy="30" rx="1.5" ry="2" fill="#fff"/>
-                            <ellipse cx="46" cy="30" rx="1.5" ry="2" fill="#fff"/>
-                            <!-- 鼻の穴 -->
-                            <ellipse cx="38" cy="42" rx="1" ry="1.5" fill="#E64A19"/>
-                            <ellipse cx="42" cy="42" rx="1" ry="1.5" fill="#E64A19"/>
-                            <!-- 口 -->
-                            <path d="M 35 48 Q 40 52 45 48" stroke="#E64A19" stroke-width="2" fill="none"/>
-                            <!-- 腕 -->
-                            <ellipse cx="25" cy="55" rx="6" ry="12" fill="#FF6B35"/>
-                            <ellipse cx="55" cy="55" rx="6" ry="12" fill="#FF6B35"/>
-                            <!-- 手 -->
-                            <circle cx="25" cy="67" r="5" fill="#FFB74D"/>
-                            <circle cx="55" cy="67" r="5" fill="#FFB74D"/>
-                            <!-- 足 -->
-                            <ellipse cx="32" cy="80" rx="7" ry="10" fill="#FF6B35"/>
-                            <ellipse cx="48" cy="80" rx="7" ry="10" fill="#FF6B35"/>
-                            <!-- 足の裏 -->
-                            <ellipse cx="32" cy="88" rx="5" ry="4" fill="#FFB74D"/>
-                            <ellipse cx="48" cy="88" rx="5" ry="4" fill="#FFB74D"/>
-                        </svg>
+                        <!-- プレイヤーポケモンスプライトは動的に更新される -->
                     </div>
                 </div>
                 <div class="player-pokemon">
@@ -141,22 +78,7 @@
             </div>
 
             <div class="menu-container" id="moves-menu" style="display: none;">
-                <div class="menu-option" data-move="0">
-                    <span class="move-name">ひのこ</span>
-                    <span class="move-info">威力40 特殊</span>
-                </div>
-                <div class="menu-option" data-move="1">
-                    <span class="move-name">たいあたり</span>
-                    <span class="move-info">威力30 物理</span>
-                </div>
-                <div class="menu-option" data-move="2">
-                    <span class="move-name">ひっかく</span>
-                    <span class="move-info">威力35 物理</span>
-                </div>
-                <div class="menu-option" data-move="3">
-                    <span class="move-name">なきごえ</span>
-                    <span class="move-info">こうげき↓</span>
-                </div>
+                <!-- 技ボタンは動的に生成される -->
             </div>
         </div>
 
@@ -197,6 +119,45 @@
         </div>
     </div>
 
+    <!-- ポケモン選択モーダル -->
+    <div id="partyModal" class="modal hidden">
+        <div class="modal-body">
+            <div class="modal-header">
+                <h3>ポケモンを えらんでください</h3>
+                <button id="partyCancel" class="modal-close">✕</button>
+            </div>
+            <div class="party-grid" id="partyGrid">
+                <!-- ポケモン一覧がここに動的生成される -->
+            </div>
+        </div>
+    </div>
+
+    <!-- アイテム使用モーダル -->
+    <div id="itemModal" class="modal hidden">
+        <div class="modal-body">
+            <div class="modal-header">
+                <h3>どうぐ</h3>
+                <button id="itemCancel" class="modal-close">✕</button>
+            </div>
+            <div id="itemSelection" class="item-list">
+                <!-- アイテム一覧 -->
+            </div>
+            <div id="itemTarget" class="hidden">
+                <h4>つかう あいて</h4>
+                <div class="party-grid" id="itemTargetGrid">
+                    <!-- 対象選択 -->
+                </div>
+                <button id="itemTargetBack" class="back-button">もどる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- スクリプト読み込み -->
+    <script src="js/DataLoader.js"></script>
+    <script src="js/Pokemon.js"></script>
+    <script src="js/BattleManager.js"></script>
+    <script src="js/EnemyAI.js"></script>
+    <script src="js/UIManager.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
