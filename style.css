@@ -373,7 +373,7 @@ body {
 .music-controls {
     position: fixed;
     top: 10px;
-    right: 10px;
+    left: 10px;
     z-index: 1000;
 }
 
@@ -678,7 +678,7 @@ body {
     /* 音楽コントロールをコンパクトに */
     .music-controls {
         top: 5px;
-        right: 5px;
+        left: 5px;
         transform: scale(0.8);
     }
 }
@@ -776,6 +776,8 @@ body {
     }
 
     .music-controls {
+        top: 5px;
+        left: 5px;
         transform: scale(0.7);
     }
 

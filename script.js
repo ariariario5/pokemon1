@@ -321,6 +321,17 @@ function startBattleAnimation() {
     const enemyPokemon = document.querySelector('.enemy-pokemon');
     const playerPokemon = document.querySelector('.player-pokemon');
 
+    if (!enemySprite || !playerSprite || !enemyPokemon || !playerPokemon) {
+        console.error('Pokemon elements not found!');
+        return;
+    }
+
+    // アニメーションクラスをリセット
+    enemySprite.classList.remove('pokemon-enter-enemy');
+    playerSprite.classList.remove('pokemon-enter-player');
+    enemyPokemon.classList.remove('pokemon-info-enter');
+    playerPokemon.classList.remove('pokemon-info-enter');
+
     // 最初は非表示
     enemySprite.style.opacity = '0';
     playerSprite.style.opacity = '0';
@@ -557,41 +568,51 @@ function resetBattle() {
 
 // イベントリスナー
 document.addEventListener('DOMContentLoaded', () => {
-    initializeDisplay();
+    console.log('Game initializing...');
 
-    // BGMトグルボタンの設定
+    // まずBGMコントロールを設定
     const bgmToggle = document.getElementById('bgm-toggle');
     const volumeSlider = document.getElementById('volume-slider');
     const volumeDisplay = document.getElementById('volume-display');
+
+    if (!bgmToggle || !volumeSlider || !volumeDisplay) {
+        console.error('BGM controls not found!');
+        return;
+    }
 
     // 音量スライダーの処理
     volumeSlider.addEventListener('input', (e) => {
         const volume = e.target.value / 100;
         masterVolume = volume;
-        masterGain.gain.setValueAtTime(masterVolume, audioContext.currentTime);
+        if (audioContext && masterGain) {
+            masterGain.gain.setValueAtTime(masterVolume, audioContext.currentTime);
+        }
         volumeDisplay.textContent = e.target.value;
     });
 
-    bgmToggle.addEventListener('click', () => {
-        if (bgmIsPlaying) {
-            stopBattleBGM();
-            bgmToggle.textContent = '🎵 OFF';
-            bgmToggle.classList.add('off');
-        } else {
-            playBattleBGM();
-            bgmToggle.textContent = '🎵 ON';
-            bgmToggle.classList.remove('off');
+    bgmToggle.addEventListener('click', async () => {
+        try {
+            // AudioContextを開始 (ブラウザポリシー対応)
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+
+            if (bgmIsPlaying) {
+                stopBattleBGM();
+                bgmToggle.textContent = '🎵 OFF';
+                bgmToggle.classList.add('off');
+            } else {
+                playBattleBGM();
+                bgmToggle.textContent = '🎵 ON';
+                bgmToggle.classList.remove('off');
+            }
+        } catch (error) {
+            console.error('BGM error:', error);
         }
     });
 
-    // ユーザーがページをクリックしたらBGMを開始 (Chrome等のブラウザポリシー対応)
-    document.addEventListener('click', () => {
-        if (!bgmIsPlaying) {
-            playBattleBGM();
-            bgmToggle.textContent = '🎵 BGM ON';
-            bgmToggle.classList.remove('off');
-        }
-    }, { once: true });
+    // 初期化を実行
+    initializeDisplay();
 
     // メインメニューのクリックイベント
     elements.mainMenu.addEventListener('click', (e) => {
@@ -634,10 +655,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 初期メッセージ (登場アニメーション後に表示)
+    // 初期メッセージ (すぐに表示して、登場アニメーション後にバトル開始)
+    showMessage("やせいの フシギダネが とびだしてきた！", null);
+
+    // 登場アニメーション後にバトル開始
     setTimeout(() => {
-        showMessage("やせいの フシギダネが とびだしてきた！", () => {
-            playerTurn();
-        });
+        playerTurn();
     }, 2500);
 });
