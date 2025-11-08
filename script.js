@@ -1,7 +1,11 @@
- // ====== Enhanced Pokemon Battle System - FIXED
-  VERSION ======
-  // Complete battle mechanics with proper state
-  management and sprite handling
+ // ====== Enhanced Pokemon Battle System ======
+  // Complete Pokemon experience with title screen,
+  intro, and fast battle mechanics
+
+  // Game state management
+  let currentScene = 'title'; // title, intro, battle
+  let dialogIndex = 0;
+  let isTransitioning = false;
 
   // Pokemon database with complete stats and movesets
   const pokemonDatabase = {
@@ -57,6 +61,14 @@
     }
   };
 
+  // Introduction dialog sequence
+  const introDialogs = [
+    'ポケモンの世界へようこそ！',
+    'きみは新人トレーナーだ。',
+    'さあ、最初のポケモンを選んで冒険を始めよう！',
+    'やせいのポケモンが現れた！'
+  ];
+
   // Move database with power, accuracy, PP, and effects
   const moveDatabase = {
     tackle: { name: 'たいあたり', type: 'normal', power:
@@ -93,7 +105,7 @@
   // Type effectiveness chart
   const typeEffectiveness = {
     fire: { grass: 2, water: 0.5, fire: 0.5, ice: 2,
-  bug: 2, steel: 2 },
+  bug: 2, steel: 2, poison: 1 },
     water: { fire: 2, grass: 0.5, water: 0.5, ground: 2,
    rock: 2, dragon: 0.5 },
     grass: { water: 2, fire: 0.5, grass: 0.5, poison:
@@ -101,65 +113,88 @@
   dragon: 0.5, steel: 0.5 },
     normal: { rock: 0.5, ghost: 0, steel: 0.5 },
     poison: { grass: 2, poison: 0.5, ground: 0.5, rock:
-  0.5, ghost: 0.5, steel: 0 },
-    electric: { water: 2, grass: 0.5, ground: 0, flying:
-   2, dragon: 0.5, electric: 0.5 }
+  0.5, ghost: 0.5, steel: 0 }
   };
 
-  // FIXED: Battle state management with proper scene
-  transitions
+  // ====== Scene Management ======
+  function showScene(sceneName) {
+    if (isTransitioning) return;
+
+    isTransitioning = true;
+    currentScene = sceneName;
+
+    // Fast scene transitions
+    const scenes = ['title-screen', 'intro-scene',
+  'battle-field'];
+    scenes.forEach(scene => {
+      const element = document.getElementById(scene);
+      if (element) {
+        element.style.display = scene ===
+  `${sceneName}-screen` || scene ===
+  `${sceneName}-scene` || scene === `${sceneName}-field`
+   ? 'flex' : 'none';
+      }
+    });
+
+    // Scene-specific initialization
+    if (sceneName === 'intro') {
+      dialogIndex = 0;
+      showDialog();
+    } else if (sceneName === 'battle') {
+      initializeBattle();
+    }
+
+    setTimeout(() => { isTransitioning = false; }, 150);
+   // Fast transition
+  }
+
+  function showDialog() {
+    const dialogBox =
+  document.getElementById('dialog-box');
+    const dialogText =
+  document.getElementById('dialog-text');
+    const continueBtn =
+  document.getElementById('continue-btn');
+
+    if (dialogIndex < introDialogs.length) {
+      dialogText.textContent =
+  introDialogs[dialogIndex];
+      // Fast typing effect
+      animateText(dialogText, introDialogs[dialogIndex],
+   30);
+      continueBtn.textContent = '続ける';
+    } else {
+      showScene('battle');
+      return;
+    }
+  }
+
+  function animateText(element, text, speed = 30) {
+    element.textContent = '';
+    let i = 0;
+    const timer = setInterval(() => {
+      element.textContent += text.charAt(i);
+      i++;
+      if (i >= text.length) {
+        clearInterval(timer);
+      }
+    }, speed);
+  }
+
+  // ====== Battle System ======
   class BattleState {
     constructor() {
       this.player = null;
       this.enemy = null;
-      this.currentMenu = 'intro'; // intro, main, moves
-      this.currentPhase = 'introduction'; //
-  introduction, battle, victory, defeat
-      this.turnQueue = [];
-      this.battlePhase = 'select'; // select, animate,
-  resolve
+      this.currentMenu = 'main';
+      this.battlePhase = 'select';
       this.sfxEnabled = true;
-      this.isProcessing = false; // Prevent multiple
-  actions
     }
 
     initializePokemon(playerData, enemyData) {
       this.player = new Pokemon(playerData, 5);
       this.enemy = new Pokemon(enemyData, 5);
       this.updateUI();
-    }
-
-    // FIXED: Scene transition management
-    switchPhase(newPhase) {
-      this.currentPhase = newPhase;
-
-      const introEl =
-  document.getElementById('intro-phase');
-      const mainMenuEl =
-  document.getElementById('main-menu');
-      const movesMenuEl =
-  document.getElementById('moves-menu');
-
-      // Hide all menus first
-      introEl.classList.add('hidden');
-      mainMenuEl.classList.add('hidden');
-      movesMenuEl.classList.add('hidden');
-
-      // Show appropriate menu
-      switch (newPhase) {
-        case 'introduction':
-          introEl.classList.remove('hidden');
-          this.currentMenu = 'intro';
-          break;
-        case 'battle':
-          mainMenuEl.classList.remove('hidden');
-          this.currentMenu = 'main';
-          break;
-        case 'move_selection':
-          movesMenuEl.classList.remove('hidden');
-          this.currentMenu = 'moves';
-          break;
-      }
     }
 
     calculateDamage(attacker, defender, move) {
@@ -170,8 +205,7 @@
       const attack = attacker.currentStats.attack;
       const defense = defender.currentStats.defense;
 
-      // Basic damage calculation (simplified Pokemon
-  formula)
+      // Pokemon damage formula
       let damage = Math.floor(((((2 * level / 5 + 2) *
   power * attack / defense) / 50) + 2));
 
@@ -200,13 +234,15 @@
       let effectiveness = 1;
 
       if (typeEffectiveness[moveType] &&
-  typeEffectiveness[moveType][defenderType1]) {
+  typeEffectiveness[moveType][defenderType1] !==
+  undefined) {
         effectiveness *=
   typeEffectiveness[moveType][defenderType1];
       }
 
       if (defenderType2 && typeEffectiveness[moveType]
-  && typeEffectiveness[moveType][defenderType2]) {
+  && typeEffectiveness[moveType][defenderType2] !==
+  undefined) {
         effectiveness *=
   typeEffectiveness[moveType][defenderType2];
       }
@@ -226,31 +262,42 @@
 
     updateUI() {
       // Update player info
-      document.getElementById('player-name').textContent
-   = this.player.name;
+      const playerName =
+  document.getElementById('player-name');
+      const playerLevel =
+  document.getElementById('player-level');
+      const playerHpCurrent =
+  document.getElementById('player-hp-current');
+      const playerHpMax =
+  document.getElementById('player-hp-max');
 
-  document.getElementById('player-level').textContent =
+      if (playerName) playerName.textContent =
+  this.player.name;
+      if (playerLevel) playerLevel.textContent =
   this.player.level;
-      document.getElementById('player-hp-current').textC
-  ontent = this.player.currentHP;
-
-  document.getElementById('player-hp-max').textContent =
-   this.player.maxHP;
+      if (playerHpCurrent) playerHpCurrent.textContent =
+   this.player.currentHP;
+      if (playerHpMax) playerHpMax.textContent =
+  this.player.maxHP;
 
       // Update enemy info
-      document.getElementById('enemy-name').textContent
-  = this.enemy.name;
-      document.getElementById('enemy-level').textContent
-   = this.enemy.level;
-      document.getElementById('enemy-hp-current').textCo
-  ntent = this.enemy.currentHP;
+      const enemyName =
+  document.getElementById('enemy-name');
+      const enemyLevel =
+  document.getElementById('enemy-level');
+      const enemyHpCurrent =
+  document.getElementById('enemy-hp-current');
+      const enemyHpMax =
+  document.getElementById('enemy-hp-max');
 
-  document.getElementById('enemy-hp-max').textContent =
+      if (enemyName) enemyName.textContent =
+  this.enemy.name;
+      if (enemyLevel) enemyLevel.textContent =
+  this.enemy.level;
+      if (enemyHpCurrent) enemyHpCurrent.textContent =
+  this.enemy.currentHP;
+      if (enemyHpMax) enemyHpMax.textContent =
   this.enemy.maxHP;
-
-      // Update introduction text
-      document.getElementById('intro-enemy-name').textCo
-  ntent = this.enemy.name;
 
       // Update HP bars
       this.updateHPBar('player', this.player);
@@ -263,12 +310,13 @@
     updateHPBar(type, pokemon) {
       const hpBar =
   document.getElementById(`${type}-hp-bar`);
+      if (!hpBar) return;
+
       const hpPercentage = (pokemon.currentHP /
   pokemon.maxHP) * 100;
-
       hpBar.style.width = `${hpPercentage}%`;
 
-      // Change color based on HP
+      // Change color based on HP - fast transitions
       hpBar.className = 'hp-bar-inner';
       if (hpPercentage <= 20) {
         hpBar.classList.add('critical');
@@ -280,9 +328,11 @@
     updateEXPBar() {
       const expBar =
   document.getElementById('player-exp-bar');
-      const expPercentage = (this.player.experience /
-  100) * 100; // Simplified EXP system
-      expBar.style.width = `${expPercentage}%`;
+      if (expBar) {
+        const expPercentage = (this.player.experience /
+  100) * 100;
+        expBar.style.width = `${expPercentage}%`;
+      }
     }
   }
 
@@ -294,8 +344,7 @@
       this.type1 = data.type1;
       this.type2 = data.type2;
       this.level = level;
-      this.moves = data.moves.slice(0, 4); // Max 4
-  moves
+      this.moves = data.moves.slice(0, 4);
       this.sprites = data.sprites;
 
       // Calculate stats based on level
@@ -315,7 +364,6 @@
       this.baseStats = { ...this.currentStats };
       this.statusEffects = {};
       this.experience = Math.floor(Math.random() * 100);
-   // Random EXP for demo
 
       // Move PP tracking
       this.movePP = {};
@@ -347,237 +395,146 @@
   const battle = new BattleState();
 
   // ====== Audio System ======
-  const bgm = document.getElementById('bgm');
-  const btnBgm = document.getElementById('btnBgm');
-  const btnSfx = document.getElementById('btnSfx');
-  const vol = document.getElementById('vol');
-
-  // Sound effects
-  const sfxElements = {
-    attack: document.getElementById('sfx-attack'),
-    damage: document.getElementById('sfx-damage'),
-    heal: document.getElementById('sfx-heal'),
-    select: document.getElementById('sfx-select')
-  };
-
-  // BGM controls
-  btnBgm.onclick = async () => {
-    try {
-      if (bgm.paused) {
-        await bgm.play();
-        btnBgm.textContent = 'BGM ⏸';
-      } else {
-        bgm.pause();
-        btnBgm.textContent = 'BGM ▶︎';
-      }
-    } catch (e) {
-      pushLog('※ユーザー操作後でないと音が出せません');
+  const audioElements = {
+    bgm: null,
+    sfx: {
+      attack: null,
+      damage: null,
+      heal: null,
+      select: null
     }
   };
 
-  // SFX controls
-  btnSfx.onclick = () => {
-    battle.sfxEnabled = !battle.sfxEnabled;
-    btnSfx.textContent = battle.sfxEnabled ? 'SFX ⏸' :
-  'SFX ▶︎';
-  };
+  function initializeAudio() {
+    audioElements.bgm = document.getElementById('bgm');
+    audioElements.sfx.attack =
+  document.getElementById('sfx-attack');
+    audioElements.sfx.damage =
+  document.getElementById('sfx-damage');
+    audioElements.sfx.heal =
+  document.getElementById('sfx-heal');
+    audioElements.sfx.select =
+  document.getElementById('sfx-select');
+  }
 
-  // Volume control
-  vol.oninput = () => {
-    bgm.volume = +vol.value;
-    Object.values(sfxElements).forEach(sfx => {
-      if (sfx) sfx.volume = +vol.value;
-    });
-  };
-
-  // Initialize audio volumes
-  bgm.volume = +vol.value;
-  Object.values(sfxElements).forEach(sfx => {
-    if (sfx) sfx.volume = +vol.value;
-  });
-
-  // Play sound effect
   function playSFX(type) {
-    if (!battle.sfxEnabled || !sfxElements[type])
+    if (!battle.sfxEnabled || !audioElements.sfx[type])
   return;
 
     try {
-      sfxElements[type].currentTime = 0;
-      sfxElements[type].play().catch(() => {}); //
-  Ignore errors silently
+      audioElements.sfx[type].currentTime = 0;
+      audioElements.sfx[type].play().catch(() => {});
     } catch (e) {
       // Silent fail for missing audio files
     }
   }
 
-  // ====== FIXED: Sprite System with proper fallback
-  ======
-  function fallbackSVG(color = '#4caf50', pokemonName =
-  'Pokemon') {
-    const svg = encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg'
-  width='144' height='144' viewBox='0 0 144 144'>
-        <rect width='144' height='144' fill='${color}'
-  rx='8'/>
-        <circle cx='72' cy='75' r='42' fill='#ffffff'
-  opacity='0.3' />
-        <circle cx='57' cy='66' r='8' fill='#000'/>
-        <circle cx='87' cy='66' r='8' fill='#000'/>
-        <path d='M50 90 Q72 105 94 90' stroke='#000'
-  stroke-width='3' fill='none'/>
-        <text x='72' y='120' text-anchor='middle'
-  fill='#fff' font-family='monospace'
-  font-size='10'>${pokemonName}</text>
-      </svg>`
-    );
+  // ====== Sprite System ======
+  function fallbackSVG(color = '#4caf50', name =
+  'ポケモン') {
+    const colors = {
+      'フシギダネ': '#78C850',
+      'ヒトカゲ': '#F08030',
+      'ゼニガメ': '#6890F0',
+      'スライムダネ': '#A8A878'
+    };
+
+    const pokemonColor = colors[name] || color;
+
+    const svg = encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg'
+  width='120' height='120' viewBox='0 0 120 120'>
+        <defs>
+          <radialGradient id='grad1' cx='50%' cy='30%'
+  r='70%'>
+            <stop offset='0%'
+  stop-color='${pokemonColor}' stop-opacity='1'/>
+            <stop offset='70%'
+  stop-color='${pokemonColor}' stop-opacity='0.8'/>
+            <stop offset='100%'
+  stop-color='${pokemonColor}' stop-opacity='0.6'/>
+          </radialGradient>
+          <filter id='shadow'>
+            <feDropShadow dx='2' dy='4' stdDeviation='3'
+   flood-opacity='0.3'/>
+          </filter>
+        </defs>
+        <ellipse cx='60' cy='85' rx='35' ry='15'
+  fill='rgba(0,0,0,0.2)'/>
+        <circle cx='60' cy='60' r='35'
+  fill='url(#grad1)' filter='url(#shadow)'/>
+        <circle cx='50' cy='50' r='4' fill='#000'/>
+        <circle cx='70' cy='50' r='4' fill='#000'/>
+        <ellipse cx='60' cy='65' rx='8' ry='4'
+  fill='rgba(0,0,0,0.3)'/>
+      </svg>
+    `);
     return `data:image/svg+xml;charset=UTF-8,${svg}`;
   }
 
   function setSprite(el, path, fallbackColor,
   pokemonName) {
-    // Set fallback immediately
-    el.src = fallbackSVG(fallbackColor, pokemonName);
+    if (!el) return;
 
-    // Try to load the actual image
     const img = new Image();
-    img.onload = () => {
-      el.src = path;
-    };
-    img.onerror = () => {
-      // Keep the fallback SVG
-      console.log(`Sprite not found: ${path}, using
-  fallback`);
-    };
+    img.onload = () => el.src = path;
+    img.onerror = () => el.src =
+  fallbackSVG(fallbackColor, pokemonName);
     img.src = path;
   }
 
   // ====== Battle Log System ======
-  const log = document.getElementById('log');
-  let logs = [];
+  const logs = [];
 
   function pushLog(text) {
     logs.push(text);
+    const log = document.getElementById('log');
+    if (!log) return;
+
     const row = document.createElement('div');
     row.className = 'row';
-
-    const short = text.length > 40 ? text.slice(0, 40) +
-   '…' : text;
-    row.innerHTML = `<span
-  class="short">${short}</span>` +
-                    (text.length > 40 ? ` <span
-  class="more">もっと見る</span>` : '');
-    row.dataset.full = text;
-
+    row.textContent = text;
     log.appendChild(row);
     log.scrollTop = log.scrollHeight;
   }
 
-  // Log expansion functionality
-  log.addEventListener('click', e => {
-    const more = e.target.closest('.more');
-    if (!more) return;
-
-    const row = more.parentElement;
-    const expanded = row.dataset.expanded === '1';
-
-    if (!expanded) {
-      row.querySelector('.short').textContent =
-  row.dataset.full;
-      more.textContent = '閉じる';
-      row.dataset.expanded = '1';
-    } else {
-      const fullText = row.dataset.full;
-      row.querySelector('.short').textContent =
-  fullText.length > 40 ? fullText.slice(0, 40) + '…' :
-  fullText;
-      more.textContent = 'もっと見る';
-      row.dataset.expanded = '0';
-    }
-  });
-
-  log.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && document.activeElement ===
-  log) {
-      const last =
-  log.lastElementChild?.querySelector('.more');
-      if (last) last.click();
-    }
-  });
-
   // ====== Animation System ======
   function attackAnimation(attackerEl, defenderEl,
   moveType = 'normal') {
-    // Attacker animation
+    if (!attackerEl || !defenderEl) return;
+
+    // Fast attack animation
     attackerEl.animate([
       { transform: 'translateX(0) scale(1)' },
-      { transform: 'translateX(8px) scale(1.1)' },
+      { transform: 'translateX(10px) scale(1.1)' },
       { transform: 'translateX(0) scale(1)' }
     ], {
-      duration: 300,
+      duration: 200, // Faster animation
       easing: 'steps(3, end)'
     });
 
-    // Defender flash animation
+    // Defender flash
     setTimeout(() => {
       defenderEl.animate([
-        { filter: 'brightness(1) hue-rotate(0deg)' },
-        { filter: 'brightness(3) hue-rotate(180deg)' },
-        { filter: 'brightness(1) hue-rotate(0deg)' }
+        { filter: 'brightness(1)' },
+        { filter: 'brightness(2.5)' },
+        { filter: 'brightness(1)' }
       ], {
-        duration: 200,
+        duration: 150, // Faster flash
         easing: 'steps(3, end)'
       });
-
-      // Screen shake for powerful attacks
-      if (moveType !== 'normal') {
-        document.getElementById('field').classList.add('
-  screen-shake');
-        setTimeout(() => {
-          document.getElementById('field').classList.rem
-  ove('screen-shake');
-        }, 500);
-      }
-    }, 150);
-
-    // Particle effects
-    createParticleEffect(defenderEl, moveType);
-  }
-
-  function createParticleEffect(targetEl, moveType) {
-    const effectsContainer =
-  document.getElementById('battle-effects');
-    const rect = targetEl.getBoundingClientRect();
-    const fieldRect = document.getElementById('field').g
-  etBoundingClientRect();
-
-    for (let i = 0; i < 8; i++) {
-      const particle = document.createElement('div');
-      particle.className = `effect-particle
-  effect-${moveType}`;
-
-      const x = rect.left - fieldRect.left +
-  Math.random() * rect.width;
-      const y = rect.top - fieldRect.top + Math.random()
-   * rect.height;
-
-      particle.style.left = `${x}px`;
-      particle.style.top = `${y}px`;
-
-      effectsContainer.appendChild(particle);
-
-      setTimeout(() => {
-        particle.remove();
-      }, 2000);
-    }
+    }, 100);
   }
 
   function showEffectiveness(effectiveness) {
     const effectDiv =
   document.getElementById('effectiveness');
+    if (!effectDiv) return;
+
     effectDiv.textContent =
   battle.getEffectivenessText(effectiveness);
-
     effectDiv.className = 'effectiveness';
+
     if (effectiveness > 1) {
       effectDiv.classList.add('super-effective');
     } else if (effectiveness < 1 && effectiveness > 0) {
@@ -587,13 +544,32 @@
     }
 
     effectDiv.classList.remove('hidden');
-
     setTimeout(() => {
       effectDiv.classList.add('hidden');
-    }, 1500);
+    }, 1000); // Faster display
   }
 
-  // ====== Menu System with State Management ======
+  // ====== Menu System ======
+  function switchMenu(menuType) {
+    const mainMenu =
+  document.getElementById('main-menu');
+    const movesMenu =
+  document.getElementById('moves-menu');
+
+    if (!mainMenu || !movesMenu) return;
+
+    if (menuType === 'main') {
+      mainMenu.classList.remove('hidden');
+      movesMenu.classList.add('hidden');
+    } else if (menuType === 'moves') {
+      mainMenu.classList.add('hidden');
+      movesMenu.classList.remove('hidden');
+      updateMovesMenu();
+    }
+
+    battle.currentMenu = menuType;
+  }
+
   function updateMovesMenu() {
     const moveButtons =
   document.querySelectorAll('.move-btn:not(.back-btn)');
@@ -625,23 +601,19 @@
   // ====== Battle Logic ======
   async function executeMove(attacker, defender, moveId)
    {
-    if (battle.isProcessing) return;
-    battle.isProcessing = true;
-
     const move = attacker.useMove(moveId);
     if (!move) {
       pushLog(`${attacker.name} の
   ${moveDatabase[moveId].name} は PPが たりない！`);
-      battle.isProcessing = false;
       return;
     }
 
     playSFX('select');
     pushLog(`${attacker.name} の ${move.name}！`);
 
-    // Animation delay
+    // Fast animation delay
     await new Promise(resolve => setTimeout(resolve,
-  800));
+  400));
 
     if (move.power > 0) {
       // Damage calculation
@@ -664,7 +636,7 @@
       playSFX('attack');
 
       await new Promise(resolve => setTimeout(resolve,
-  500));
+  250));
 
       // Apply damage
       const fainted = defender.takeDamage(damage);
@@ -678,7 +650,7 @@
       if (effectiveness !== 1) {
         showEffectiveness(effectiveness);
         await new Promise(resolve => setTimeout(resolve,
-   300));
+   200));
 
   pushLog(battle.getEffectivenessText(effectiveness));
       }
@@ -686,21 +658,16 @@
       // Check if Pokemon fainted
       if (fainted) {
         await new Promise(resolve => setTimeout(resolve,
-   500));
+   300));
         pushLog(`${defender.name} は たおれた！`);
 
         if (defender === battle.enemy) {
-          // Player wins
           pushLog('プレイヤーの勝利！');
           battle.player.experience += 20;
           battle.updateEXPBar();
-          battle.switchPhase('victory');
         } else {
-          // Enemy wins
           pushLog('プレイヤーの敗北...');
-          battle.switchPhase('defeat');
         }
-        battle.isProcessing = false;
         return;
       }
     } else {
@@ -710,14 +677,6 @@
   defender);
       }
     }
-
-    // Apply status effect if any
-    if (move.effect && move.effect.type && Math.random()
-   * 100 < move.effect.chance) {
-      applyStatusEffect(defender, move.effect.type);
-    }
-
-    battle.isProcessing = false;
   }
 
   function applyMoveEffect(effect, attacker, defender) {
@@ -743,43 +702,7 @@
     }
   }
 
-  function applyStatusEffect(pokemon, effectType) {
-    switch (effectType) {
-      case 'burn':
-        pokemon.statusEffects.burn = true;
-        pushLog(`${pokemon.name} は やけどを おった！`);
-        break;
-      case 'poison':
-        pokemon.statusEffects.poison = true;
-        pushLog(`${pokemon.name} は どくを うけた！`);
-        break;
-    }
-    updateStatusDisplay(pokemon);
-  }
-
-  function updateStatusDisplay(pokemon) {
-    const statusElement = pokemon === battle.player ?
-      document.getElementById('player-status') :
-      document.getElementById('enemy-status');
-
-    statusElement.innerHTML = '';
-
-    Object.keys(pokemon.statusEffects).forEach(effect =>
-   {
-      if (pokemon.statusEffects[effect]) {
-        const effectSpan =
-  document.createElement('span');
-        effectSpan.className = `status-effect
-  status-${effect}`;
-        effectSpan.textContent = effect.toUpperCase();
-        statusElement.appendChild(effectSpan);
-      }
-    });
-  }
-
   async function enemyTurn() {
-    if (battle.isProcessing) return;
-
     // Simple AI: randomly select a move
     const availableMoves =
   battle.enemy.moves.filter(moveId =>
@@ -797,9 +720,8 @@
   selectedMove);
   }
 
-  // ====== FIXED: Event Handlers with State Management
-  ======
-  document.addEventListener('DOMContentLoaded', () => {
+  // ====== Game Initialization ======
+  function initializeBattle() {
     // Initialize battle with default Pokemon
     const playerData = pokemonDatabase.mon004; //
   Charmander
@@ -808,111 +730,180 @@
 
     battle.initializePokemon(playerData, enemyData);
 
-    // FIXED: Set sprites with proper fallback
-    setSprite(document.getElementById('player'),
+    // Set sprites with fast loading
+    setTimeout(() => {
+      setSprite(document.getElementById('player'),
   playerData.sprites.back, '#ff8844', playerData.name);
-    setSprite(document.getElementById('enemy'),
+      setSprite(document.getElementById('enemy'),
   enemyData.sprites.front, '#6adf95', enemyData.name);
+    }, 100);
 
-    // Start in introduction phase
-    battle.switchPhase('introduction');
-  });
-
-  // FIXED: Introduction continue button
-  document.addEventListener('click', (e) => {
-    if (e.target.id === 'intro-continue') {
-      playSFX('select');
-      pushLog(`やせいの ${battle.enemy.name} が
+    // Initial log messages
+    pushLog(`やせいの ${enemyData.name} が
   とびだしてきた！`);
-      pushLog(`いけ！ ${battle.player.name}！`);
-      battle.switchPhase('battle');
+    pushLog(`いけ！ ${playerData.name}！`);
+  }
+
+  // ====== Event Handlers ======
+  document.addEventListener('DOMContentLoaded', () => {
+    initializeAudio();
+
+    // Title screen start button
+    const startBtn =
+  document.getElementById('start-btn');
+    if (startBtn) {
+      startBtn.addEventListener('click', () => {
+        playSFX('select');
+        showScene('intro');
+      });
     }
-  });
 
-  // Main menu handlers
-  document.addEventListener('click', async (e) => {
-    if (battle.isProcessing) return;
-
-    if (e.target.dataset.act === 'atk') {
-      playSFX('select');
-      battle.switchPhase('move_selection');
-      updateMovesMenu();
-    } else if (e.target.dataset.act === 'switch') {
-      playSFX('select');
-      pushLog('ほかに たたかえる ポケモンが いない！');
-    } else if (e.target.dataset.act === 'item') {
-      playSFX('select');
-      pushLog('どうぐを もっていない！');
-    } else if (e.target.dataset.act === 'run') {
-      playSFX('select');
-      pushLog('うまく にげられた！');
+    // Continue button for dialog
+    const continueBtn =
+  document.getElementById('continue-btn');
+    if (continueBtn) {
+      continueBtn.addEventListener('click', () => {
+        playSFX('select');
+        dialogIndex++;
+        if (dialogIndex >= introDialogs.length) {
+          showScene('battle');
+        } else {
+          showDialog();
+        }
+      });
     }
-  });
 
-  // Move selection handlers
-  document.addEventListener('click', async (e) => {
-    if (battle.isProcessing) return;
+    // Audio controls
+    const btnBgm = document.getElementById('btnBgm');
+    if (btnBgm && audioElements.bgm) {
+      btnBgm.addEventListener('click', async () => {
+        try {
+          if (audioElements.bgm.paused) {
+            await audioElements.bgm.play();
+            btnBgm.textContent = 'BGM ⏸';
+          } else {
+            audioElements.bgm.pause();
+            btnBgm.textContent = 'BGM ▶︎';
+          }
+        } catch (e) {
 
-    if (e.target.classList.contains('move-btn') &&
-  e.target.dataset.move) {
-      if (e.target.disabled) return;
+  pushLog('※ユーザー操作後でないと音が出せません');
+        }
+      });
+    }
 
-      const moveId = e.target.dataset.move;
-      battle.switchPhase('battle');
+    const btnSfx = document.getElementById('btnSfx');
+    if (btnSfx) {
+      btnSfx.addEventListener('click', () => {
+        battle.sfxEnabled = !battle.sfxEnabled;
+        btnSfx.textContent = battle.sfxEnabled ? 'SFX
+  ⏸' : 'SFX ▶︎';
+      });
+    }
 
-      // Player turn
-      await executeMove(battle.player, battle.enemy,
+    const vol = document.getElementById('vol');
+    if (vol) {
+      vol.addEventListener('input', () => {
+        if (audioElements.bgm) audioElements.bgm.volume
+  = +vol.value;
+        Object.values(audioElements.sfx).forEach(sfx =>
+  {
+          if (sfx) sfx.volume = +vol.value;
+        });
+      });
+    }
+
+    // Battle menu handlers - using event delegation for
+   fast response
+    document.addEventListener('click', async (e) => {
+      if (currentScene !== 'battle') return;
+
+      // Main menu actions
+      if (e.target.dataset.act === 'atk') {
+        playSFX('select');
+        switchMenu('moves');
+      } else if (e.target.dataset.act === 'switch') {
+        playSFX('select');
+        pushLog('ほかに たたかえる ポケモンが
+  いない！');
+      } else if (e.target.dataset.act === 'item') {
+        playSFX('select');
+        pushLog('どうぐを もっていない！');
+      } else if (e.target.dataset.act === 'run') {
+        playSFX('select');
+        pushLog('うまく にげられた！');
+      }
+
+      // Move selection
+      else if (e.target.classList.contains('move-btn')
+  && e.target.dataset.move) {
+        if (e.target.disabled) return;
+
+        const moveId = e.target.dataset.move;
+        switchMenu('main');
+
+        // Player turn
+        await executeMove(battle.player, battle.enemy,
   moveId);
 
-      // Check if battle continues
-      if (battle.enemy.currentHP > 0 &&
-  battle.player.currentHP > 0 && !battle.isProcessing) {
-        await new Promise(resolve => setTimeout(resolve,
-   1000));
-        await enemyTurn();
+        // Check if battle continues
+        if (battle.enemy.currentHP > 0 &&
+  battle.player.currentHP > 0) {
+          await new Promise(resolve =>
+  setTimeout(resolve, 500));
+          await enemyTurn();
+        }
       }
-    } else if (e.target.classList.contains('back-btn'))
+
+      // Back button
+      else if (e.target.classList.contains('back-btn'))
   {
-      playSFX('select');
-      battle.switchPhase('battle');
-    }
-  });
-
-  // FIXED: Keyboard support with state management
-  document.addEventListener('keydown', (e) => {
-    if (battle.isProcessing) return;
-
-    if (battle.currentMenu === 'intro') {
-      if (e.key === 'Enter' || e.key === ' ') {
-
-  document.getElementById('intro-continue').click();
+        playSFX('select');
+        switchMenu('main');
       }
-    } else if (battle.currentMenu === 'main') {
-      switch (e.key) {
-        case '1':
-  document.querySelector('[data-act="atk"]')?.click();
-  break;
-        case '2': document.querySelector('[data-act="swi
-  tch"]')?.click(); break;
-        case '3':
-  document.querySelector('[data-act="item"]')?.click();
-  break;
-        case '4':
-  document.querySelector('[data-act="run"]')?.click();
-  break;
+    });
+
+    // Fast keyboard support
+    document.addEventListener('keydown', (e) => {
+      if (currentScene === 'battle') {
+        if (battle.currentMenu === 'main') {
+          const actions = ['atk', 'switch', 'item',
+  'run'];
+          const key = parseInt(e.key);
+          if (key >= 1 && key <= 4) {
+            const btn = document.querySelector(`[data-ac
+  t="${actions[key-1]}"]`);
+            if (btn) btn.click();
+          }
+        } else if (battle.currentMenu === 'moves') {
+          const key = parseInt(e.key);
+          if (key >= 1 && key <= 4) {
+            const btn =
+  document.querySelector(`.move-btn:nth-child(${key})`);
+            if (btn && !btn.disabled) btn.click();
+          } else if (e.key === 'Escape') {
+            document.querySelector('.back-btn').click();
+          }
+        }
+      } else if (currentScene === 'title') {
+        if (e.key === 'Enter' || e.key === ' ') {
+          document.getElementById('start-btn').click();
+        }
+      } else if (currentScene === 'intro') {
+        if (e.key === 'Enter' || e.key === ' ') {
+
+  document.getElementById('continue-btn').click();
+        }
       }
-    } else if (battle.currentMenu === 'moves') {
-      switch (e.key) {
-        case '1': document.querySelector('[data-move]:nt
-  h-child(1)')?.click(); break;
-        case '2': document.querySelector('[data-move]:nt
-  h-child(2)')?.click(); break;
-        case '3': document.querySelector('[data-move]:nt
-  h-child(3)')?.click(); break;
-        case '4': document.querySelector('[data-move]:nt
-  h-child(4)')?.click(); break;
-        case 'Escape':
-  document.querySelector('.back-btn')?.click(); break;
-      }
+    });
+
+    // Initialize audio volumes
+    const volSlider = document.getElementById('vol');
+    if (volSlider) {
+      if (audioElements.bgm) audioElements.bgm.volume =
+  +volSlider.value;
+      Object.values(audioElements.sfx).forEach(sfx => {
+        if (sfx) sfx.volume = +volSlider.value;
+      });
     }
   });
