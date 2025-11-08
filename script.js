@@ -1,375 +1,116 @@
- // ====== Enhanced Pokemon Battle System ======
-  // Complete Pokemon experience with title screen,
-  intro, and fast battle mechanics
+ // ====== ポケモンバトルシステム完全版 ======
 
-  // Game state management
-  let currentScene = 'title'; // title, intro, battle
+  // ゲーム状態管理
+  let currentScene = 'title';
   let dialogIndex = 0;
-  let isTransitioning = false;
+  let gameState = {
+    player: null,
+    enemy: null,
+    currentMenu: 'main',
+    battlePhase: 'select',
+    sfxEnabled: true,
+    bgmEnabled: false
+  };
 
-  // Pokemon database with complete stats and movesets
-  const pokemonDatabase = {
-    mon001: {
+  // ポケモンデータベース
+  const pokemonData = {
+    bulbasaur: {
       name: 'フシギダネ',
       type1: 'grass',
       type2: 'poison',
       baseStats: { hp: 45, attack: 49, defense: 49,
   speed: 45 },
-      moves: ['tackle', 'vine_whip', 'growl',
-  'leech_seed'],
-      sprites: {
-        front: 'assets/sprites/front/mon001.png',
-        back: 'assets/sprites/back/mon001.png'
-      }
+      moves: ['tackle', 'vineWhip', 'growl',
+  'leechSeed'],
+      color: '#78C850'
     },
-    mon004: {
+    charmander: {
       name: 'ヒトカゲ',
       type1: 'fire',
       type2: null,
       baseStats: { hp: 39, attack: 52, defense: 43,
   speed: 65 },
       moves: ['tackle', 'ember', 'growl', 'scratch'],
-      sprites: {
-        front: 'assets/sprites/front/mon004.png',
-        back: 'assets/sprites/back/mon004.png'
-      }
+      color: '#F08030'
     },
-    mon007: {
+    squirtle: {
       name: 'ゼニガメ',
       type1: 'water',
       type2: null,
       baseStats: { hp: 44, attack: 48, defense: 65,
   speed: 43 },
-      moves: ['tackle', 'bubble', 'tail_whip',
+      moves: ['tackle', 'bubble', 'tailWhip',
   'withdraw'],
-      sprites: {
-        front: 'assets/sprites/front/mon007.png',
-        back: 'assets/sprites/back/mon007.png'
-      }
-    },
-    mon999: {
-      name: 'スライムダネ',
-      type1: 'normal',
-      type2: null,
-      baseStats: { hp: 50, attack: 45, defense: 40,
-  speed: 35 },
-      moves: ['tackle', 'pound', 'growl', 'harden'],
-      sprites: {
-        front: 'assets/sprites/front/mon999.png',
-        back: 'assets/sprites/back/mon999.png'
-      }
+      color: '#6890F0'
     }
   };
 
-  // Introduction dialog sequence
-  const introDialogs = [
+  // 技データベース
+  const moveData = {
+    tackle: { name: 'たいあたり', type: 'normal', power:
+   40, accuracy: 100, pp: 35 },
+    ember: { name: 'ひのこ', type: 'fire', power: 40,
+  accuracy: 100, pp: 25 },
+    bubble: { name: 'あわ', type: 'water', power: 40,
+  accuracy: 100, pp: 30 },
+    vineWhip: { name: 'つるのムチ', type: 'grass',
+  power: 45, accuracy: 100, pp: 25 },
+    scratch: { name: 'ひっかく', type: 'normal', power:
+  40, accuracy: 100, pp: 35 },
+    growl: { name: 'なきごえ', type: 'normal', power: 0,
+   accuracy: 100, pp: 40 },
+    tailWhip: { name: 'しっぽをふる', type: 'normal',
+  power: 0, accuracy: 100, pp: 30 },
+    leechSeed: { name: 'やどりぎのタネ', type: 'grass',
+  power: 0, accuracy: 90, pp: 10 },
+    withdraw: { name: 'からにこもる', type: 'water',
+  power: 0, accuracy: 100, pp: 40 }
+  };
+
+  // タイプ相性
+  const typeChart = {
+    fire: { grass: 2, water: 0.5, fire: 0.5 },
+    water: { fire: 2, grass: 0.5, water: 0.5 },
+    grass: { water: 2, fire: 0.5, grass: 0.5 },
+    normal: {}
+  };
+
+  // 導入メッセージ
+  const introMessages = [
     'ポケモンの世界へようこそ！',
     'きみは新人トレーナーだ。',
     'さあ、最初のポケモンを選んで冒険を始めよう！',
     'やせいのポケモンが現れた！'
   ];
 
-  // Move database with power, accuracy, PP, and effects
-  const moveDatabase = {
-    tackle: { name: 'たいあたり', type: 'normal', power:
-   40, accuracy: 100, pp: 35, effect: null },
-    ember: { name: 'ひのこ', type: 'fire', power: 40,
-  accuracy: 100, pp: 25, effect: { type: 'burn', chance:
-   10 } },
-    bubble: { name: 'あわ', type: 'water', power: 40,
-  accuracy: 100, pp: 30, effect: { type: 'speed_down',
-  chance: 10 } },
-    vine_whip: { name: 'つるのムチ', type: 'grass',
-  power: 45, accuracy: 100, pp: 25, effect: null },
-    scratch: { name: 'ひっかく', type: 'normal', power:
-  40, accuracy: 100, pp: 35, effect: null },
-    pound: { name: 'はたく', type: 'normal', power: 40,
-  accuracy: 100, pp: 35, effect: null },
-    growl: { name: 'なきごえ', type: 'normal', power: 0,
-   accuracy: 100, pp: 40, effect: { type: 'attack_down',
-   chance: 100 } },
-    tail_whip: { name: 'しっぽをふる', type: 'normal',
-  power: 0, accuracy: 100, pp: 30, effect: { type:
-  'defense_down', chance: 100 } },
-    leech_seed: { name: 'やどりぎのタネ', type: 'grass',
-   power: 0, accuracy: 90, pp: 10, effect: { type:
-  'leech_seed', chance: 100 } },
-    withdraw: { name: 'からにこもる', type: 'water',
-  power: 0, accuracy: 100, pp: 40, effect: { type:
-  'defense_up', chance: 100 } },
-    harden: { name: 'かたくなる', type: 'normal', power:
-   0, accuracy: 100, pp: 30, effect: { type:
-  'defense_up', chance: 100 } }
-  };
-
-  // Type effectiveness chart
-  const typeEffectiveness = {
-    fire: { grass: 2, water: 0.5, fire: 0.5, ice: 2,
-  bug: 2, steel: 2, poison: 1 },
-    water: { fire: 2, grass: 0.5, water: 0.5, ground: 2,
-   rock: 2, dragon: 0.5 },
-    grass: { water: 2, fire: 0.5, grass: 0.5, poison:
-  0.5, ground: 2, rock: 2, flying: 0.5, bug: 0.5,
-  dragon: 0.5, steel: 0.5 },
-    normal: { rock: 0.5, ghost: 0, steel: 0.5 },
-    poison: { grass: 2, poison: 0.5, ground: 0.5, rock:
-  0.5, ghost: 0.5, steel: 0 }
-  };
-
-  // ====== Scene Management ======
-  function showScene(sceneName) {
-    if (isTransitioning) return;
-
-    isTransitioning = true;
-    currentScene = sceneName;
-
-    // Fast scene transitions
-    const scenes = ['title-screen', 'intro-scene',
-  'battle-field'];
-    scenes.forEach(scene => {
-      const element = document.getElementById(scene);
-      if (element) {
-        element.style.display = scene ===
-  `${sceneName}-screen` || scene ===
-  `${sceneName}-scene` || scene === `${sceneName}-field`
-   ? 'flex' : 'none';
-      }
-    });
-
-    // Scene-specific initialization
-    if (sceneName === 'intro') {
-      dialogIndex = 0;
-      showDialog();
-    } else if (sceneName === 'battle') {
-      initializeBattle();
-    }
-
-    setTimeout(() => { isTransitioning = false; }, 150);
-   // Fast transition
-  }
-
-  function showDialog() {
-    const dialogBox =
-  document.getElementById('dialog-box');
-    const dialogText =
-  document.getElementById('dialog-text');
-    const continueBtn =
-  document.getElementById('continue-btn');
-
-    if (dialogIndex < introDialogs.length) {
-      dialogText.textContent =
-  introDialogs[dialogIndex];
-      // Fast typing effect
-      animateText(dialogText, introDialogs[dialogIndex],
-   30);
-      continueBtn.textContent = '続ける';
-    } else {
-      showScene('battle');
-      return;
-    }
-  }
-
-  function animateText(element, text, speed = 30) {
-    element.textContent = '';
-    let i = 0;
-    const timer = setInterval(() => {
-      element.textContent += text.charAt(i);
-      i++;
-      if (i >= text.length) {
-        clearInterval(timer);
-      }
-    }, speed);
-  }
-
-  // ====== Battle System ======
-  class BattleState {
-    constructor() {
-      this.player = null;
-      this.enemy = null;
-      this.currentMenu = 'main';
-      this.battlePhase = 'select';
-      this.sfxEnabled = true;
-    }
-
-    initializePokemon(playerData, enemyData) {
-      this.player = new Pokemon(playerData, 5);
-      this.enemy = new Pokemon(enemyData, 5);
-      this.updateUI();
-    }
-
-    calculateDamage(attacker, defender, move) {
-      if (move.power === 0) return 0;
-
-      const level = attacker.level;
-      const power = move.power;
-      const attack = attacker.currentStats.attack;
-      const defense = defender.currentStats.defense;
-
-      // Pokemon damage formula
-      let damage = Math.floor(((((2 * level / 5 + 2) *
-  power * attack / defense) / 50) + 2));
-
-      // Type effectiveness
-      const effectiveness =
-  this.getTypeEffectiveness(move.type, defender.type1,
-  defender.type2);
-      damage = Math.floor(damage * effectiveness);
-
-      // Random factor (85-100%)
-      const randomFactor = (Math.random() * 0.15 +
-  0.85);
-      damage = Math.floor(damage * randomFactor);
-
-      // STAB (Same Type Attack Bonus)
-      if (attacker.type1 === move.type || attacker.type2
-   === move.type) {
-        damage = Math.floor(damage * 1.5);
-      }
-
-      return Math.max(1, damage);
-    }
-
-    getTypeEffectiveness(moveType, defenderType1,
-  defenderType2) {
-      let effectiveness = 1;
-
-      if (typeEffectiveness[moveType] &&
-  typeEffectiveness[moveType][defenderType1] !==
-  undefined) {
-        effectiveness *=
-  typeEffectiveness[moveType][defenderType1];
-      }
-
-      if (defenderType2 && typeEffectiveness[moveType]
-  && typeEffectiveness[moveType][defenderType2] !==
-  undefined) {
-        effectiveness *=
-  typeEffectiveness[moveType][defenderType2];
-      }
-
-      return effectiveness;
-    }
-
-    getEffectivenessText(effectiveness) {
-      if (effectiveness > 1) return 'こうかは
-  ばつぐんだ！';
-      if (effectiveness < 1 && effectiveness > 0) return
-   'こうかは いまひとつのようだ...';
-      if (effectiveness === 0) return 'こうかが
-  ないようだ...';
-      return '';
-    }
-
-    updateUI() {
-      // Update player info
-      const playerName =
-  document.getElementById('player-name');
-      const playerLevel =
-  document.getElementById('player-level');
-      const playerHpCurrent =
-  document.getElementById('player-hp-current');
-      const playerHpMax =
-  document.getElementById('player-hp-max');
-
-      if (playerName) playerName.textContent =
-  this.player.name;
-      if (playerLevel) playerLevel.textContent =
-  this.player.level;
-      if (playerHpCurrent) playerHpCurrent.textContent =
-   this.player.currentHP;
-      if (playerHpMax) playerHpMax.textContent =
-  this.player.maxHP;
-
-      // Update enemy info
-      const enemyName =
-  document.getElementById('enemy-name');
-      const enemyLevel =
-  document.getElementById('enemy-level');
-      const enemyHpCurrent =
-  document.getElementById('enemy-hp-current');
-      const enemyHpMax =
-  document.getElementById('enemy-hp-max');
-
-      if (enemyName) enemyName.textContent =
-  this.enemy.name;
-      if (enemyLevel) enemyLevel.textContent =
-  this.enemy.level;
-      if (enemyHpCurrent) enemyHpCurrent.textContent =
-  this.enemy.currentHP;
-      if (enemyHpMax) enemyHpMax.textContent =
-  this.enemy.maxHP;
-
-      // Update HP bars
-      this.updateHPBar('player', this.player);
-      this.updateHPBar('enemy', this.enemy);
-
-      // Update EXP bar
-      this.updateEXPBar();
-    }
-
-    updateHPBar(type, pokemon) {
-      const hpBar =
-  document.getElementById(`${type}-hp-bar`);
-      if (!hpBar) return;
-
-      const hpPercentage = (pokemon.currentHP /
-  pokemon.maxHP) * 100;
-      hpBar.style.width = `${hpPercentage}%`;
-
-      // Change color based on HP - fast transitions
-      hpBar.className = 'hp-bar-inner';
-      if (hpPercentage <= 20) {
-        hpBar.classList.add('critical');
-      } else if (hpPercentage <= 50) {
-        hpBar.classList.add('low');
-      }
-    }
-
-    updateEXPBar() {
-      const expBar =
-  document.getElementById('player-exp-bar');
-      if (expBar) {
-        const expPercentage = (this.player.experience /
-  100) * 100;
-        expBar.style.width = `${expPercentage}%`;
-      }
-    }
-  }
-
-  // Pokemon class
+  // ====== ポケモンクラス ======
   class Pokemon {
-    constructor(data, level) {
-      this.id = data.id;
+    constructor(data, level = 5) {
       this.name = data.name;
       this.type1 = data.type1;
       this.type2 = data.type2;
       this.level = level;
-      this.moves = data.moves.slice(0, 4);
-      this.sprites = data.sprites;
+      this.color = data.color;
 
-      // Calculate stats based on level
+      // ステータス計算
       this.maxHP = Math.floor((data.baseStats.hp * 2 *
   level / 100) + level + 10);
       this.currentHP = this.maxHP;
+      this.attack = Math.floor((data.baseStats.attack *
+  2 * level / 100) + 5);
+      this.defense = Math.floor((data.baseStats.defense
+  * 2 * level / 100) + 5);
+      this.speed = Math.floor((data.baseStats.speed * 2
+  * level / 100) + 5);
 
-      this.currentStats = {
-        attack: Math.floor((data.baseStats.attack * 2 *
-  level / 100) + 5),
-        defense: Math.floor((data.baseStats.defense * 2
-  * level / 100) + 5),
-        speed: Math.floor((data.baseStats.speed * 2 *
-  level / 100) + 5)
-      };
-
-      this.baseStats = { ...this.currentStats };
-      this.statusEffects = {};
-      this.experience = Math.floor(Math.random() * 100);
-
-      // Move PP tracking
+      // 技とPP
+      this.moves = data.moves.slice(0, 4);
       this.movePP = {};
-      this.moves.forEach(moveId => {
-        this.movePP[moveId] = moveDatabase[moveId].pp;
+      this.moves.forEach(move => {
+        this.movePP[move] = moveData[move].pp;
       });
+
+      this.experience = Math.floor(Math.random() * 100);
     }
 
     takeDamage(damage) {
@@ -381,7 +122,7 @@
     useMove(moveId) {
       if (this.movePP[moveId] > 0) {
         this.movePP[moveId]--;
-        return moveDatabase[moveId];
+        return moveData[moveId];
       }
       return null;
     }
@@ -391,519 +132,528 @@
     }
   }
 
-  // Global battle state
-  const battle = new BattleState();
-
-  // ====== Audio System ======
-  const audioElements = {
-    bgm: null,
-    sfx: {
-      attack: null,
-      damage: null,
-      heal: null,
-      select: null
-    }
-  };
-
-  function initializeAudio() {
-    audioElements.bgm = document.getElementById('bgm');
-    audioElements.sfx.attack =
-  document.getElementById('sfx-attack');
-    audioElements.sfx.damage =
-  document.getElementById('sfx-damage');
-    audioElements.sfx.heal =
-  document.getElementById('sfx-heal');
-    audioElements.sfx.select =
-  document.getElementById('sfx-select');
+  // ====== ユーティリティ関数 ======
+  function $(id) {
+    return document.getElementById(id);
   }
 
-  function playSFX(type) {
-    if (!battle.sfxEnabled || !audioElements.sfx[type])
-  return;
+  function show(elementId) {
+    $(elementId).classList.remove('hidden');
+  }
 
-    try {
-      audioElements.sfx[type].currentTime = 0;
-      audioElements.sfx[type].play().catch(() => {});
-    } catch (e) {
-      // Silent fail for missing audio files
+  function hide(elementId) {
+    $(elementId).classList.add('hidden');
+  }
+
+  function switchScene(sceneName) {
+    // 全シーンを隠す
+    $('title-screen').classList.add('hidden');
+    $('intro-screen').classList.add('hidden');
+    $('battle-screen').classList.add('hidden');
+
+    // 指定シーンを表示
+    $(sceneName + '-screen').classList.remove('hidden');
+    currentScene = sceneName;
+
+    // シーン固有の初期化
+    if (sceneName === 'intro') {
+      dialogIndex = 0;
+      showDialog();
+    } else if (sceneName === 'battle') {
+      initializeBattle();
     }
   }
 
-  // ====== Sprite System ======
-  function fallbackSVG(color = '#4caf50', name =
-  'ポケモン') {
-    const colors = {
-      'フシギダネ': '#78C850',
-      'ヒトカゲ': '#F08030',
-      'ゼニガメ': '#6890F0',
-      'スライムダネ': '#A8A878'
-    };
+  function showDialog() {
+    if (dialogIndex < introMessages.length) {
+      typeText($('dialog-text'),
+  introMessages[dialogIndex]);
+    } else {
+      switchScene('battle');
+    }
+  }
 
-    const pokemonColor = colors[name] || color;
+  function typeText(element, text, speed = 50) {
+    element.textContent = '';
+    let i = 0;
+    const timer = setInterval(() => {
+      element.textContent += text[i];
+      i++;
+      if (i >= text.length) {
+        clearInterval(timer);
+      }
+    }, speed);
+  }
 
-    const svg = encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg'
-  width='120' height='120' viewBox='0 0 120 120'>
+  // ====== ポケモンスプライト生成 ======
+  function createPokemonSprite(pokemon, isPlayer =
+  false) {
+    const svg = `
+      <svg width="150" height="150" viewBox="0 0 150
+  150">
         <defs>
-          <radialGradient id='grad1' cx='50%' cy='30%'
-  r='70%'>
-            <stop offset='0%'
-  stop-color='${pokemonColor}' stop-opacity='1'/>
-            <stop offset='70%'
-  stop-color='${pokemonColor}' stop-opacity='0.8'/>
-            <stop offset='100%'
-  stop-color='${pokemonColor}' stop-opacity='0.6'/>
+          <radialGradient id="grad${isPlayer ? 'Player'
+  : 'Enemy'}" cx="50%" cy="30%" r="70%">
+            <stop offset="0%"
+  stop-color="${pokemon.color}" stop-opacity="1"/>
+            <stop offset="70%"
+  stop-color="${pokemon.color}" stop-opacity="0.8"/>
+            <stop offset="100%"
+  stop-color="${pokemon.color}" stop-opacity="0.6"/>
           </radialGradient>
-          <filter id='shadow'>
-            <feDropShadow dx='2' dy='4' stdDeviation='3'
-   flood-opacity='0.3'/>
+          <filter id="shadow${isPlayer ? 'Player' :
+  'Enemy'}">
+            <feDropShadow dx="3" dy="6" stdDeviation="4"
+   flood-opacity="0.4"/>
           </filter>
         </defs>
-        <ellipse cx='60' cy='85' rx='35' ry='15'
-  fill='rgba(0,0,0,0.2)'/>
-        <circle cx='60' cy='60' r='35'
-  fill='url(#grad1)' filter='url(#shadow)'/>
-        <circle cx='50' cy='50' r='4' fill='#000'/>
-        <circle cx='70' cy='50' r='4' fill='#000'/>
-        <ellipse cx='60' cy='65' rx='8' ry='4'
-  fill='rgba(0,0,0,0.3)'/>
+        <!-- 影 -->
+        <ellipse cx="75" cy="130" rx="40" ry="15"
+  fill="rgba(0,0,0,0.2)"/>
+        <!-- 体 -->
+        <circle cx="75" cy="75" r="45"
+  fill="url(#grad${isPlayer ? 'Player' : 'Enemy'})"
+  filter="url(#shadow${isPlayer ? 'Player' :
+  'Enemy'})"/>
+        <!-- 目 -->
+        <circle cx="60" cy="65" r="6" fill="#000"/>
+        <circle cx="90" cy="65" r="6" fill="#000"/>
+        <circle cx="62" cy="63" r="2" fill="#fff"/>
+        <circle cx="92" cy="63" r="2" fill="#fff"/>
+        <!-- 口 -->
+        <ellipse cx="75" cy="85" rx="10" ry="6"
+  fill="rgba(0,0,0,0.3)"/>
+        <!-- 模様（タイプに応じて） -->
+        ${pokemon.type1 === 'grass' ? '<rect x="65"
+  y="45" width="20" height="8" rx="4" fill="#2E7D32"/>'
+  : ''}
+        ${pokemon.type1 === 'fire' ? '<polygon
+  points="75,40 80,50 70,50" fill="#D84315"/>' : ''}
+        ${pokemon.type1 === 'water' ? '<circle cx="75"
+  cy="50" r="8" fill="#1565C0" opacity="0.7"/>' : ''}
       </svg>
-    `);
-    return `data:image/svg+xml;charset=UTF-8,${svg}`;
+    `;
+
+    return 'data:image/svg+xml;base64,' +
+  btoa(unescape(encodeURIComponent(svg)));
   }
 
-  function setSprite(el, path, fallbackColor,
-  pokemonName) {
-    if (!el) return;
+  // ====== バトルシステム ======
+  function initializeBattle() {
+    // ポケモン初期化
+    gameState.player = new
+  Pokemon(pokemonData.charmander);
+    gameState.enemy = new
+  Pokemon(pokemonData.bulbasaur);
 
-    const img = new Image();
-    img.onload = () => el.src = path;
-    img.onerror = () => el.src =
-  fallbackSVG(fallbackColor, pokemonName);
-    img.src = path;
+    // スプライト設定
+    $('player-sprite').src =
+  createPokemonSprite(gameState.player, true);
+    $('enemy-sprite').src =
+  createPokemonSprite(gameState.enemy, false);
+
+    updateUI();
+    logMessage(`やせいの ${gameState.enemy.name} が
+  とびだしてきた！`);
+    logMessage(`いけ！ ${gameState.player.name}！`);
   }
 
-  // ====== Battle Log System ======
-  const logs = [];
+  function updateUI() {
+    // プレイヤー情報更新
+    $('player-name').textContent =
+  gameState.player.name;
+    $('player-level').textContent =
+  gameState.player.level;
+    $('player-hp-current').textContent =
+  gameState.player.currentHP;
+    $('player-hp-max').textContent =
+  gameState.player.maxHP;
 
-  function pushLog(text) {
-    logs.push(text);
-    const log = document.getElementById('log');
-    if (!log) return;
+    // 敵情報更新
+    $('enemy-name').textContent = gameState.enemy.name;
+    $('enemy-level').textContent =
+  gameState.enemy.level;
+    $('enemy-hp-current').textContent =
+  gameState.enemy.currentHP;
+    $('enemy-hp-max').textContent =
+  gameState.enemy.maxHP;
 
-    const row = document.createElement('div');
-    row.className = 'row';
-    row.textContent = text;
-    log.appendChild(row);
+    // HPバー更新
+    updateHPBar('player', gameState.player);
+    updateHPBar('enemy', gameState.enemy);
+
+    // EXPバー更新
+    $('exp-bar').style.width =
+  `${gameState.player.experience}%`;
+
+    // 技メニュー更新
+    updateMovesMenu();
+  }
+
+  function updateHPBar(type, pokemon) {
+    const hpBar = $(type + '-hp-bar');
+    const hpPercentage = (pokemon.currentHP /
+  pokemon.maxHP) * 100;
+
+    hpBar.style.width = `${hpPercentage}%`;
+    hpBar.className = 'hp-bar';
+
+    if (hpPercentage <= 20) {
+      hpBar.classList.add('critical');
+    } else if (hpPercentage <= 50) {
+      hpBar.classList.add('low');
+    }
+  }
+
+  function updateMovesMenu() {
+    const moveButtons =
+  document.querySelectorAll('.move-btn');
+    gameState.player.moves.forEach((moveId, index) => {
+      if (moveButtons[index]) {
+        const move = moveData[moveId];
+        const currentPP =
+  gameState.player.movePP[moveId];
+        const maxPP = move.pp;
+
+        moveButtons[index].innerHTML =
+  `${move.name}<span
+  class="pp">${currentPP}/${maxPP}</span>`;
+        moveButtons[index].dataset.move = moveId;
+        moveButtons[index].disabled = currentPP === 0;
+      }
+    });
+  }
+
+  function logMessage(message) {
+    const log = $('battle-log');
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.textContent = message;
+    log.appendChild(entry);
     log.scrollTop = log.scrollHeight;
   }
 
-  // ====== Animation System ======
-  function attackAnimation(attackerEl, defenderEl,
-  moveType = 'normal') {
-    if (!attackerEl || !defenderEl) return;
+  function calculateDamage(attacker, defender, move) {
+    if (move.power === 0) return 0;
 
-    // Fast attack animation
-    attackerEl.animate([
-      { transform: 'translateX(0) scale(1)' },
-      { transform: 'translateX(10px) scale(1.1)' },
-      { transform: 'translateX(0) scale(1)' }
-    ], {
-      duration: 200, // Faster animation
-      easing: 'steps(3, end)'
-    });
+    const level = attacker.level;
+    const attack = attacker.attack;
+    const defense = defender.defense;
+    const power = move.power;
 
-    // Defender flash
-    setTimeout(() => {
-      defenderEl.animate([
-        { filter: 'brightness(1)' },
-        { filter: 'brightness(2.5)' },
-        { filter: 'brightness(1)' }
-      ], {
-        duration: 150, // Faster flash
-        easing: 'steps(3, end)'
-      });
-    }, 100);
+    // 基本ダメージ計算
+    let damage = Math.floor(((2 * level / 5 + 2) * power
+   * attack / defense / 50 + 2));
+
+    // タイプ相性
+    const effectiveness =
+  getTypeEffectiveness(move.type, defender.type1,
+  defender.type2);
+    damage = Math.floor(damage * effectiveness);
+
+    // 乱数（85-100%）
+    damage = Math.floor(damage * (Math.random() * 0.15 +
+   0.85));
+
+    // タイプ一致ボーナス
+    if (attacker.type1 === move.type || attacker.type2
+  === move.type) {
+      damage = Math.floor(damage * 1.5);
+    }
+
+    return Math.max(1, damage);
+  }
+
+  function getTypeEffectiveness(moveType, defenderType1,
+   defenderType2) {
+    let effectiveness = 1;
+
+    if (typeChart[moveType] &&
+  typeChart[moveType][defenderType1]) {
+      effectiveness *=
+  typeChart[moveType][defenderType1];
+    }
+
+    if (defenderType2 && typeChart[moveType] &&
+  typeChart[moveType][defenderType2]) {
+      effectiveness *=
+  typeChart[moveType][defenderType2];
+    }
+
+    return effectiveness;
   }
 
   function showEffectiveness(effectiveness) {
-    const effectDiv =
-  document.getElementById('effectiveness');
-    if (!effectDiv) return;
-
-    effectDiv.textContent =
-  battle.getEffectivenessText(effectiveness);
-    effectDiv.className = 'effectiveness';
+    const effectDiv = $('effectiveness');
 
     if (effectiveness > 1) {
-      effectDiv.classList.add('super-effective');
+      effectDiv.textContent = 'こうかは ばつぐんだ！';
+      effectDiv.className = 'effectiveness
+  super-effective';
     } else if (effectiveness < 1 && effectiveness > 0) {
-      effectDiv.classList.add('not-very-effective');
+      effectDiv.textContent = 'こうかは
+  いまひとつのようだ...';
+      effectDiv.className = 'effectiveness
+  not-very-effective';
     } else if (effectiveness === 0) {
-      effectDiv.classList.add('no-effect');
+      effectDiv.textContent = 'こうかが ないようだ...';
+      effectDiv.className = 'effectiveness no-effect';
     }
 
     effectDiv.classList.remove('hidden');
     setTimeout(() => {
       effectDiv.classList.add('hidden');
-    }, 1000); // Faster display
+    }, 2000);
   }
 
-  // ====== Menu System ======
-  function switchMenu(menuType) {
-    const mainMenu =
-  document.getElementById('main-menu');
-    const movesMenu =
-  document.getElementById('moves-menu');
-
-    if (!mainMenu || !movesMenu) return;
-
-    if (menuType === 'main') {
-      mainMenu.classList.remove('hidden');
-      movesMenu.classList.add('hidden');
-    } else if (menuType === 'moves') {
-      mainMenu.classList.add('hidden');
-      movesMenu.classList.remove('hidden');
-      updateMovesMenu();
-    }
-
-    battle.currentMenu = menuType;
-  }
-
-  function updateMovesMenu() {
-    const moveButtons =
-  document.querySelectorAll('.move-btn:not(.back-btn)');
-
-    moveButtons.forEach((btn, index) => {
-      if (index < battle.player.moves.length) {
-        const moveId = battle.player.moves[index];
-        const move = moveDatabase[moveId];
-        const currentPP = battle.player.movePP[moveId];
-        const maxPP = move.pp;
-
-        btn.textContent = move.name;
-        btn.dataset.move = moveId;
-        btn.dataset.pp = `${currentPP}/${maxPP}`;
-
-        if (currentPP === 0) {
-          btn.classList.add('no-pp');
-          btn.disabled = true;
-        } else {
-          btn.classList.remove('no-pp');
-          btn.disabled = false;
-        }
-      } else {
-        btn.style.display = 'none';
-      }
-    });
-  }
-
-  // ====== Battle Logic ======
   async function executeMove(attacker, defender, moveId)
    {
     const move = attacker.useMove(moveId);
     if (!move) {
-      pushLog(`${attacker.name} の
-  ${moveDatabase[moveId].name} は PPが たりない！`);
+      logMessage(`${attacker.name} の
+  ${moveData[moveId].name} は PPが たりない！`);
       return;
     }
 
-    playSFX('select');
-    pushLog(`${attacker.name} の ${move.name}！`);
+    playSound('select');
+    logMessage(`${attacker.name} の ${move.name}！`);
 
-    // Fast animation delay
-    await new Promise(resolve => setTimeout(resolve,
-  400));
+    // アニメーション
+    const attackerSprite = attacker === gameState.player
+   ? $('player-sprite') : $('enemy-sprite');
+    const defenderSprite = attacker === gameState.player
+   ? $('enemy-sprite') : $('player-sprite');
+
+    attackerSprite.classList.add('attack-animation');
+    setTimeout(() =>
+  attackerSprite.classList.remove('attack-animation'),
+  600);
+
+    await sleep(400);
 
     if (move.power > 0) {
-      // Damage calculation
-      const damage = battle.calculateDamage(attacker,
-  defender, move);
+      const damage = calculateDamage(attacker, defender,
+   move);
       const effectiveness =
-  battle.getTypeEffectiveness(move.type, defender.type1,
-   defender.type2);
+  getTypeEffectiveness(move.type, defender.type1,
+  defender.type2);
 
-      // Animate attack
-      const attackerEl = attacker === battle.player ?
-  document.getElementById('player') :
-  document.getElementById('enemy');
-      const defenderEl = attacker === battle.player ?
-  document.getElementById('enemy') :
-  document.getElementById('player');
+      playSound('attack');
+      defenderSprite.classList.add('damage-animation');
+      setTimeout(() =>
+  defenderSprite.classList.remove('damage-animation'),
+  400);
 
-      attackAnimation(attackerEl, defenderEl,
-  move.type);
-      playSFX('attack');
-
-      await new Promise(resolve => setTimeout(resolve,
-  250));
-
-      // Apply damage
       const fainted = defender.takeDamage(damage);
-      battle.updateUI();
+      updateUI();
 
-      playSFX('damage');
-      pushLog(`${defender.name} に ${damage}
+      logMessage(`${defender.name} に ${damage}
   ダメージ！`);
 
-      // Show effectiveness message
       if (effectiveness !== 1) {
         showEffectiveness(effectiveness);
-        await new Promise(resolve => setTimeout(resolve,
-   200));
-
-  pushLog(battle.getEffectivenessText(effectiveness));
+        await sleep(1000);
       }
 
-      // Check if Pokemon fainted
       if (fainted) {
-        await new Promise(resolve => setTimeout(resolve,
-   300));
-        pushLog(`${defender.name} は たおれた！`);
-
-        if (defender === battle.enemy) {
-          pushLog('プレイヤーの勝利！');
-          battle.player.experience += 20;
-          battle.updateEXPBar();
+        logMessage(`${defender.name} は たおれた！`);
+        if (defender === gameState.enemy) {
+          logMessage('プレイヤーの勝利！');
+          gameState.player.experience = Math.min(100,
+  gameState.player.experience + 25);
+          updateUI();
         } else {
-          pushLog('プレイヤーの敗北...');
+          logMessage('プレイヤーの敗北...');
         }
         return;
       }
     } else {
-      // Status move
-      if (move.effect) {
-        applyMoveEffect(move.effect, attacker,
-  defender);
-      }
-    }
-  }
-
-  function applyMoveEffect(effect, attacker, defender) {
-    switch (effect.type) {
-      case 'attack_down':
-        defender.currentStats.attack = Math.max(1,
-  Math.floor(defender.currentStats.attack * 0.75));
-        pushLog(`${defender.name} の こうげきが
-  さがった！`);
-        break;
-      case 'defense_down':
-        defender.currentStats.defense = Math.max(1,
-  Math.floor(defender.currentStats.defense * 0.75));
-        pushLog(`${defender.name} の ぼうぎょが
-  さがった！`);
-        break;
-      case 'defense_up':
-        attacker.currentStats.defense =
-  Math.floor(attacker.currentStats.defense * 1.25);
-        pushLog(`${attacker.name} の ぼうぎょが
-  あがった！`);
-        break;
+      // 補助技の処理
+      logMessage(`${defender.name} の能力が変化した！`);
     }
   }
 
   async function enemyTurn() {
-    // Simple AI: randomly select a move
     const availableMoves =
-  battle.enemy.moves.filter(moveId =>
-  battle.enemy.canUseMove(moveId));
+  gameState.enemy.moves.filter(move =>
+  gameState.enemy.canUseMove(move));
     if (availableMoves.length === 0) {
-      pushLog(`${battle.enemy.name} は つかえる わざが
-  ない！`);
+      logMessage(`${gameState.enemy.name} は
+  使える技がない！`);
       return;
     }
 
     const selectedMove =
   availableMoves[Math.floor(Math.random() *
   availableMoves.length)];
-    await executeMove(battle.enemy, battle.player,
-  selectedMove);
+    await executeMove(gameState.enemy, gameState.player,
+   selectedMove);
   }
 
-  // ====== Game Initialization ======
-  function initializeBattle() {
-    // Initialize battle with default Pokemon
-    const playerData = pokemonDatabase.mon004; //
-  Charmander
-    const enemyData = pokemonDatabase.mon001;  //
-  Bulbasaur
-
-    battle.initializePokemon(playerData, enemyData);
-
-    // Set sprites with fast loading
-    setTimeout(() => {
-      setSprite(document.getElementById('player'),
-  playerData.sprites.back, '#ff8844', playerData.name);
-      setSprite(document.getElementById('enemy'),
-  enemyData.sprites.front, '#6adf95', enemyData.name);
-    }, 100);
-
-    // Initial log messages
-    pushLog(`やせいの ${enemyData.name} が
-  とびだしてきた！`);
-    pushLog(`いけ！ ${playerData.name}！`);
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve,
+  ms));
   }
 
-  // ====== Event Handlers ======
+  // ====== 音声システム ======
+  function playSound(type) {
+    if (!gameState.sfxEnabled) return;
+
+    const soundMap = {
+      select: 'sound-select',
+      attack: 'sound-attack',
+      damage: 'sound-damage'
+    };
+
+    const audio = $(soundMap[type]);
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {}); // エラーを無視
+    }
+  }
+
+  function toggleBGM() {
+    const bgm = $('background-music');
+    const btn = $('bgm-btn');
+
+    if (gameState.bgmEnabled) {
+      bgm.pause();
+      btn.textContent = 'BGM ▶';
+      gameState.bgmEnabled = false;
+    } else {
+      bgm.play().catch(() => {});
+      btn.textContent = 'BGM ⏸';
+      gameState.bgmEnabled = true;
+    }
+  }
+
+  function toggleSFX() {
+    const btn = $('sfx-btn');
+    gameState.sfxEnabled = !gameState.sfxEnabled;
+    btn.textContent = gameState.sfxEnabled ? 'SFX ⏸' :
+  'SFX ▶';
+  }
+
+  // ====== イベントリスナー ======
   document.addEventListener('DOMContentLoaded', () => {
-    initializeAudio();
+    // タイトル画面
+    $('start-btn').addEventListener('click', () => {
+      playSound('select');
+      switchScene('intro');
+    });
 
-    // Title screen start button
-    const startBtn =
-  document.getElementById('start-btn');
-    if (startBtn) {
-      startBtn.addEventListener('click', () => {
-        playSFX('select');
-        showScene('intro');
+    // 導入画面
+    $('continue-btn').addEventListener('click', () => {
+      playSound('select');
+      dialogIndex++;
+      if (dialogIndex >= introMessages.length) {
+        switchScene('battle');
+      } else {
+        showDialog();
+      }
+    });
+
+    // 音声コントロール
+    $('bgm-btn').addEventListener('click', toggleBGM);
+    $('sfx-btn').addEventListener('click', toggleSFX);
+
+    $('volume').addEventListener('input', (e) => {
+      const volume = e.target.value;
+      $('background-music').volume = volume;
+      document.querySelectorAll('audio:not(#background-m
+  usic)').forEach(audio => {
+        audio.volume = volume;
       });
-    }
+    });
 
-    // Continue button for dialog
-    const continueBtn =
-  document.getElementById('continue-btn');
-    if (continueBtn) {
-      continueBtn.addEventListener('click', () => {
-        playSFX('select');
-        dialogIndex++;
-        if (dialogIndex >= introDialogs.length) {
-          showScene('battle');
-        } else {
-          showDialog();
-        }
-      });
-    }
-
-    // Audio controls
-    const btnBgm = document.getElementById('btnBgm');
-    if (btnBgm && audioElements.bgm) {
-      btnBgm.addEventListener('click', async () => {
-        try {
-          if (audioElements.bgm.paused) {
-            await audioElements.bgm.play();
-            btnBgm.textContent = 'BGM ⏸';
-          } else {
-            audioElements.bgm.pause();
-            btnBgm.textContent = 'BGM ▶︎';
-          }
-        } catch (e) {
-
-  pushLog('※ユーザー操作後でないと音が出せません');
-        }
-      });
-    }
-
-    const btnSfx = document.getElementById('btnSfx');
-    if (btnSfx) {
-      btnSfx.addEventListener('click', () => {
-        battle.sfxEnabled = !battle.sfxEnabled;
-        btnSfx.textContent = battle.sfxEnabled ? 'SFX
-  ⏸' : 'SFX ▶︎';
-      });
-    }
-
-    const vol = document.getElementById('vol');
-    if (vol) {
-      vol.addEventListener('input', () => {
-        if (audioElements.bgm) audioElements.bgm.volume
-  = +vol.value;
-        Object.values(audioElements.sfx).forEach(sfx =>
-  {
-          if (sfx) sfx.volume = +vol.value;
-        });
-      });
-    }
-
-    // Battle menu handlers - using event delegation for
-   fast response
+    // バトルメニュー
     document.addEventListener('click', async (e) => {
       if (currentScene !== 'battle') return;
 
-      // Main menu actions
-      if (e.target.dataset.act === 'atk') {
-        playSFX('select');
-        switchMenu('moves');
-      } else if (e.target.dataset.act === 'switch') {
-        playSFX('select');
-        pushLog('ほかに たたかえる ポケモンが
-  いない！');
-      } else if (e.target.dataset.act === 'item') {
-        playSFX('select');
-        pushLog('どうぐを もっていない！');
-      } else if (e.target.dataset.act === 'run') {
-        playSFX('select');
-        pushLog('うまく にげられた！');
+      // メインメニュー
+      if (e.target.classList.contains('menu-btn')) {
+        const action = e.target.dataset.action;
+        playSound('select');
+
+        if (action === 'fight') {
+          hide('main-menu');
+          show('moves-menu');
+          gameState.currentMenu = 'moves';
+        } else if (action === 'pokemon') {
+          logMessage('他に戦えるポケモンがいない！');
+        } else if (action === 'bag') {
+          logMessage('道具を持っていない！');
+        } else if (action === 'run') {
+          logMessage('うまく逃げられた！');
+        }
       }
 
-      // Move selection
+      // 技選択
       else if (e.target.classList.contains('move-btn')
-  && e.target.dataset.move) {
-        if (e.target.disabled) return;
-
+  && !e.target.disabled) {
         const moveId = e.target.dataset.move;
-        switchMenu('main');
+        playSound('select');
 
-        // Player turn
-        await executeMove(battle.player, battle.enemy,
-  moveId);
+        show('main-menu');
+        hide('moves-menu');
+        gameState.currentMenu = 'main';
 
-        // Check if battle continues
-        if (battle.enemy.currentHP > 0 &&
-  battle.player.currentHP > 0) {
-          await new Promise(resolve =>
-  setTimeout(resolve, 500));
+        // プレイヤーターン
+        await executeMove(gameState.player,
+  gameState.enemy, moveId);
+
+        // バトル継続チェック
+        if (gameState.enemy.currentHP > 0 &&
+  gameState.player.currentHP > 0) {
+          await sleep(1000);
           await enemyTurn();
         }
       }
 
-      // Back button
-      else if (e.target.classList.contains('back-btn'))
-  {
-        playSFX('select');
-        switchMenu('main');
+      // 戻るボタン
+      else if (e.target.id === 'back-btn') {
+        playSound('select');
+        show('main-menu');
+        hide('moves-menu');
+        gameState.currentMenu = 'main';
       }
     });
 
-    // Fast keyboard support
+    // キーボードサポート
     document.addEventListener('keydown', (e) => {
-      if (currentScene === 'battle') {
-        if (battle.currentMenu === 'main') {
-          const actions = ['atk', 'switch', 'item',
+      if (currentScene === 'title' && (e.key === 'Enter'
+   || e.key === ' ')) {
+        $('start-btn').click();
+      } else if (currentScene === 'intro' && (e.key ===
+  'Enter' || e.key === ' ')) {
+        $('continue-btn').click();
+      } else if (currentScene === 'battle') {
+        if (gameState.currentMenu === 'main') {
+          const actions = ['fight', 'pokemon', 'bag',
   'run'];
           const key = parseInt(e.key);
           if (key >= 1 && key <= 4) {
-            const btn = document.querySelector(`[data-ac
-  t="${actions[key-1]}"]`);
-            if (btn) btn.click();
+            document.querySelector(`[data-action="${acti
+  ons[key-1]}"]`).click();
           }
-        } else if (battle.currentMenu === 'moves') {
+        } else if (gameState.currentMenu === 'moves') {
           const key = parseInt(e.key);
           if (key >= 1 && key <= 4) {
-            const btn =
-  document.querySelector(`.move-btn:nth-child(${key})`);
-            if (btn && !btn.disabled) btn.click();
+            const moveBtn =
+  document.querySelectorAll('.move-btn')[key - 1];
+            if (moveBtn && !moveBtn.disabled)
+  moveBtn.click();
           } else if (e.key === 'Escape') {
-            document.querySelector('.back-btn').click();
+            $('back-btn').click();
           }
-        }
-      } else if (currentScene === 'title') {
-        if (e.key === 'Enter' || e.key === ' ') {
-          document.getElementById('start-btn').click();
-        }
-      } else if (currentScene === 'intro') {
-        if (e.key === 'Enter' || e.key === ' ') {
-
-  document.getElementById('continue-btn').click();
         }
       }
     });
 
-    // Initialize audio volumes
-    const volSlider = document.getElementById('vol');
-    if (volSlider) {
-      if (audioElements.bgm) audioElements.bgm.volume =
-  +volSlider.value;
-      Object.values(audioElements.sfx).forEach(sfx => {
-        if (sfx) sfx.volume = +volSlider.value;
-      });
-    }
+    // 初期音量設定
+    const volume = $('volume').value;
+    document.querySelectorAll('audio').forEach(audio =>
+  {
+      audio.volume = volume;
+    });
   });
