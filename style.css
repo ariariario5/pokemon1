@@ -18,7 +18,8 @@
   html, body {
     margin: 0;
     height: 100%;
-    font-family: 'Press Start 2P', system-ui, sans-serif;
+    font-family: 'Press Start 2P', system-ui,
+  sans-serif;
     font-size: 12px;
     overflow: hidden;
   }
@@ -38,15 +39,19 @@
     to { opacity: 1; transform: scale(1); }
   }
 
-  /* HUD Controls */
+  /* FIXED: HUD Controls with proper z-index */
   .hud {
     position: fixed;
     left: 8px;
     top: 8px;
     display: flex;
     gap: 8px;
-    z-index: 30;
+    z-index: 100;
     align-items: center;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 8px;
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
   }
 
   #btnBgm, #btnSfx {
@@ -55,6 +60,7 @@
     padding: 6px 10px;
     cursor: pointer;
     transition: all 0.2s ease;
+    border-radius: 4px;
   }
 
   #btnBgm:hover, #btnSfx:hover {
@@ -67,13 +73,14 @@
     accent-color: var(--accent);
   }
 
-  /* Pokemon Sprites */
+  /* Pokemon Sprites - FIXED with fallback */
   .mon {
     position: absolute;
     image-rendering: pixelated;
     width: 144px;
     height: 144px;
     transition: all 0.3s ease;
+    object-fit: contain;
   }
 
   .front {
@@ -112,7 +119,7 @@
     }
   }
 
-  /* Pokemon Info Panels */
+  /* FIXED: Pokemon Info Panels with proper margins */
   .pokemon-info {
     position: absolute;
     background: var(--panel-bg);
@@ -122,10 +129,11 @@
     min-width: 200px;
     box-shadow: 0 4px 8px var(--shadow);
     animation: infoSlideIn 0.8s ease-out;
+    z-index: 10;
   }
 
   .enemy-info {
-    top: 20px;
+    top: 60px;
     left: 20px;
     animation-delay: 1.2s;
     animation-fill-mode: both;
@@ -184,8 +192,8 @@
   .hp-bar-inner {
     height: 100%;
     background: var(--hp-green);
-    transition: width 0.8s ease-out, background-color 0.3s
-  ease;
+    transition: width 0.8s ease-out, background-color
+  0.3s ease;
     border-radius: 2px;
   }
 
@@ -255,7 +263,8 @@
 
   .status-burn { background: #f85030; }
   .status-poison { background: #a040a0; }
-  .status-paralysis { background: #f8d030; color: #000; }
+  .status-paralysis { background: #f8d030; color: #000;
+  }
   .status-sleep { background: #705898; }
   .status-freeze { background: #98d8d8; color: #000; }
 
@@ -289,6 +298,33 @@
     }
   }
 
+  /* FIXED: Introduction Phase */
+  .intro-phase {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .intro-text p {
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .continue-btn {
+    padding: 12px 24px;
+    border: 3px solid var(--ui);
+    background: #4caf50;
+    color: white;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .continue-btn:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+  }
+
   .menu {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -303,6 +339,7 @@
     transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
+    border-radius: 4px;
   }
 
   .menu-btn::before, .move-btn::before {
@@ -366,6 +403,7 @@
   .back-btn {
     grid-column: 1 / -1;
     background: #ffe5e5;
+    border-radius: 4px;
   }
 
   .hidden {
@@ -382,6 +420,7 @@
     line-height: 1.4;
     outline: none;
     scroll-behavior: smooth;
+    border-radius: 4px;
   }
 
   .log .row {
@@ -514,10 +553,17 @@
     animation: screenShake 0.5s ease-in-out;
   }
 
-  /* Responsive Design */
+  /* FIXED: Responsive Design */
   @media (max-width: 768px) {
     html, body {
       font-size: 10px;
+    }
+
+    .hud {
+      left: 4px;
+      top: 4px;
+      gap: 4px;
+      padding: 2px 4px;
     }
 
     .mon {
@@ -541,7 +587,7 @@
     }
 
     .enemy-info {
-      top: 10px;
+      top: 40px;
       left: 10px;
     }
 
@@ -568,7 +614,7 @@
   @media (max-width: 480px) {
     .hud {
       flex-direction: column;
-      gap: 4px;
+      gap: 2px;
     }
 
     #vol {
@@ -607,5 +653,9 @@
 
     .pokemon-name {
       color: #ffffff;
+    }
+
+    .hud {
+      background: rgba(42, 42, 42, 0.9);
     }
   }
