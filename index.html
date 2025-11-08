@@ -1,163 +1,129 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ポケモンバトル - 初代スタイル</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="game-container">
-        <!-- バトル画面 -->
-        <div class="battle-screen">
-            <!-- 敵ポケモン側 -->
-            <div class="enemy-side">
-                <div class="enemy-pokemon">
-                    <div class="enemy-info">
-                        <div class="pokemon-name" id="enemy-name">フシギダネ</div>
-                        <div class="level" id="enemy-level">Lv. 5</div>
-                    </div>
-                    <div class="hp-bar">
-                        <div class="hp-label">HP:</div>
-                        <div class="hp-container">
-                            <div class="hp-fill" id="enemy-hp"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="enemy-sprite">
-                    <div id="enemy-sprite-img" class="pokemon-sprite enemy-pokemon-sprite">
-                        <!-- 敵ポケモンスプライトは動的に更新される -->
-                    </div>
-                </div>
-            </div>
+ <!doctype html>
+  <html lang="ja">
+  <head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+  content="width=device-width,initial-scale=1" />
+  <title>Pokemon Battle Enhanced</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com"
+  crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+St
+  art+2P&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <header class="hud">
+      <button id="btnBgm">BGM ▶︎</button>
+      <input id="vol" type="range" min="0" max="1" step="0.01"
+  value="0.6" />
+      <button id="btnSfx" class="sfx-toggle">SFX ▶︎</button>
+    </header>
 
-            <!-- プレイヤーポケモン側 -->
-            <div class="player-side">
-                <div class="player-sprite">
-                    <div id="player-sprite-img" class="pokemon-sprite player-pokemon-sprite">
-                        <!-- プレイヤーポケモンスプライトは動的に更新される -->
-                    </div>
-                </div>
-                <div class="player-pokemon">
-                    <div class="player-info">
-                        <div class="pokemon-name" id="player-name">ヒトカゲ</div>
-                        <div class="level" id="player-level">Lv. 5</div>
-                    </div>
-                    <div class="hp-bar">
-                        <div class="hp-label">HP:</div>
-                        <div class="hp-container">
-                            <div class="hp-fill" id="player-hp"></div>
-                        </div>
-                        <div class="hp-text">
-                            <span id="player-current-hp">20</span>/<span id="player-max-hp">20</span>
-                        </div>
-                    </div>
-                    <div class="exp-bar">
-                        <div class="exp-label">EXP:</div>
-                        <div class="exp-container">
-                            <div class="exp-fill" id="player-exp"></div>
-                        </div>
-                        <div class="exp-text">
-                            <span id="player-exp-current">0</span>/<span id="player-exp-next">100</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <main id="field">
+      <!-- Enemy Pokemon Info -->
+      <div class="pokemon-info enemy-info">
+        <div class="name-level">
+          <span class="pokemon-name"
+  id="enemy-name">フシギダネ</span>
+          <span class="pokemon-level">Lv.<span
+  id="enemy-level">5</span></span>
+        </div>
+        <div class="hp-container">
+          <div class="hp-bar-outer">
+            <div class="hp-bar-inner" id="enemy-hp-bar"
+  style="width: 100%"></div>
+          </div>
+          <div class="hp-text">
+            <span id="enemy-hp-current">35</span>/<span
+  id="enemy-hp-max">35</span>
+          </div>
+        </div>
+        <div class="status-effects" id="enemy-status"></div>
+      </div>
+
+      <!-- Pokemon Sprites -->
+      <img id="enemy" class="mon front" alt="" />
+      <img id="player" class="mon back" alt="" />
+
+      <!-- Player Pokemon Info -->
+      <div class="pokemon-info player-info">
+        <div class="name-level">
+          <span class="pokemon-name"
+  id="player-name">ヒトカゲ</span>
+          <span class="pokemon-level">Lv.<span
+  id="player-level">5</span></span>
+        </div>
+        <div class="hp-container">
+          <div class="hp-bar-outer">
+            <div class="hp-bar-inner" id="player-hp-bar"
+  style="width: 100%"></div>
+          </div>
+          <div class="hp-text">
+            <span id="player-hp-current">30</span>/<span
+  id="player-hp-max">30</span>
+          </div>
+        </div>
+        <div class="exp-container">
+          <span class="exp-label">EXP</span>
+          <div class="exp-bar-outer">
+            <div class="exp-bar-inner" id="player-exp-bar"
+  style="width: 60%"></div>
+          </div>
+        </div>
+        <div class="status-effects" id="player-status"></div>
+      </div>
+
+      <!-- Battle Panel -->
+      <section class="panel" id="main-panel">
+        <div class="menu main-menu" id="main-menu">
+          <button data-act="atk"
+  class="menu-btn">たたかう</button>
+          <button data-act="switch"
+  class="menu-btn">ポケモン</button>
+          <button data-act="item"
+  class="menu-btn">どうぐ</button>
+          <button data-act="run"
+  class="menu-btn">にげる</button>
         </div>
 
-        <!-- バトルメニュー -->
-        <div class="battle-menu">
-            <div class="menu-container" id="main-menu">
-                <div class="menu-option" data-action="fight">たたかう</div>
-                <div class="menu-option" data-action="pokemon">ポケモン</div>
-                <div class="menu-option" data-action="bag">どうぐ</div>
-                <div class="menu-option" data-action="run">にげる</div>
-            </div>
-
-            <div class="menu-container" id="moves-menu" style="display: none;">
-                <!-- 技ボタンは動的に生成される -->
-            </div>
+        <!-- Move Selection Menu (hidden by default) -->
+        <div class="menu moves-menu hidden" id="moves-menu">
+          <button data-move="tackle" class="move-btn"
+  data-pp="35/35">たいあたり</button>
+          <button data-move="ember" class="move-btn"
+  data-pp="25/25">ひのこ</button>
+          <button data-move="growl" class="move-btn"
+  data-pp="40/40">なきごえ</button>
+          <button data-move="scratch" class="move-btn"
+  data-pp="35/35">ひっかく</button>
+          <button class="back-btn">もどる</button>
         </div>
 
-        <!-- 音楽コントロール -->
-        <div class="music-controls">
-            <div class="music-panel">
-                <button id="bgm-toggle" class="bgm-button">🎵 BGM</button>
-                <div class="volume-control">
-                    <span class="volume-label">音量</span>
-                    <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="30">
-                    <span id="volume-display" class="volume-display">30</span>
-                </div>
-            </div>
-        </div>
+        <div id="log" class="log" tabindex="0"
+  aria-label="バトルログ"></div>
+      </section>
 
-        <!-- バトルログ -->
-        <div class="battle-log" id="battle-log" style="display: none;">
-            <div class="log-header">
-                <span>バトルログ</span>
-                <button class="log-close" id="log-close">✕</button>
-            </div>
-            <div class="log-content" id="log-content">
-                <!-- ログメッセージがここに追加される -->
-            </div>
-        </div>
+      <!-- Battle Effects Overlay -->
+      <div id="battle-effects" class="battle-effects"></div>
 
-        <!-- バトルログ表示ボタン -->
-        <div class="log-toggle">
-            <button id="log-toggle" class="log-button">ログ</button>
-        </div>
+      <!-- Type Effectiveness Display -->
+      <div id="effectiveness" class="effectiveness
+  hidden"></div>
+    </main>
 
-        <!-- メッセージボックス -->
-        <div class="message-box">
-            <div class="message-text" id="battle-message">
-                やせいの フシギダネが とびだしてきた！
-            </div>
-            <div class="message-arrow">▼</div>
-        </div>
-    </div>
+    <!-- Audio Elements -->
+    <audio id="bgm" src="assets/bgm/battle.mp3" preload="auto"
+  loop></audio>
+    <audio id="sfx-attack" src="assets/sfx/attack.wav"
+  preload="auto"></audio>
+    <audio id="sfx-damage" src="assets/sfx/damage.wav"
+  preload="auto"></audio>
+    <audio id="sfx-heal" src="assets/sfx/heal.wav"
+  preload="auto"></audio>
+    <audio id="sfx-select" src="assets/sfx/select.wav"
+  preload="auto"></audio>
 
-    <!-- ポケモン選択モーダル -->
-    <div id="partyModal" class="modal hidden">
-        <div class="modal-body">
-            <div class="modal-header">
-                <h3>ポケモンを えらんでください</h3>
-                <button id="partyCancel" class="modal-close">✕</button>
-            </div>
-            <div class="party-grid" id="partyGrid">
-                <!-- ポケモン一覧がここに動的生成される -->
-            </div>
-        </div>
-    </div>
-
-    <!-- アイテム使用モーダル -->
-    <div id="itemModal" class="modal hidden">
-        <div class="modal-body">
-            <div class="modal-header">
-                <h3>どうぐ</h3>
-                <button id="itemCancel" class="modal-close">✕</button>
-            </div>
-            <div id="itemSelection" class="item-list">
-                <!-- アイテム一覧 -->
-            </div>
-            <div id="itemTarget" class="hidden">
-                <h4>つかう あいて</h4>
-                <div class="party-grid" id="itemTargetGrid">
-                    <!-- 対象選択 -->
-                </div>
-                <button id="itemTargetBack" class="back-button">もどる</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- スクリプト読み込み -->
-    <script src="js/DataLoader.js"></script>
-    <script src="js/Pokemon.js"></script>
-    <script src="js/BattleManager.js"></script>
-    <script src="js/EnemyAI.js"></script>
-    <script src="js/UIManager.js"></script>
     <script src="script.js"></script>
-</body>
-</html>
+  </body>
+  </html>
