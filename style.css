@@ -1,19 +1,18 @@
  :root {
     --ui: #0a0a0a;
     --box: #fff;
-    --accent: #2ee;
+    --accent: #4a90e2;
     --hp-green: #48d048;
     --hp-yellow: #f8d030;
     --hp-red: #f85030;
     --exp-blue: #58a8f0;
     --shadow: rgba(0, 0, 0, 0.3);
     --battle-bg: #9ee5cd;
-    --panel-bg: #ffffff;
+    --panel-bg: #f8f8f8;
+    --primary: #3b82f6;
   }
 
-  * {
-    box-sizing: border-box;
-  }
+  * { box-sizing: border-box; }
 
   html, body {
     margin: 0;
@@ -22,197 +21,300 @@
   sans-serif;
     font-size: 12px;
     overflow: hidden;
+    background: #000;
   }
 
-  /* Field and Background */
+  /* Field */
   #field {
     position: relative;
     height: 100vh;
     background: linear-gradient(180deg, #87ceeb 0%,
   var(--battle-bg) 50%, #8fbc8f 100%);
     overflow: hidden;
-    animation: fieldEntry 1s ease-out;
   }
 
-  @keyframes fieldEntry {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  /* FIXED: HUD Controls with proper z-index */
+  /* HUD */
   .hud {
     position: fixed;
     left: 8px;
     top: 8px;
     display: flex;
     gap: 8px;
-    z-index: 100;
+    z-index: 1000;
     align-items: center;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 4px 8px;
-    border-radius: 8px;
-    backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 6px 12px;
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 
   #btnBgm, #btnSfx {
-    border: 3px solid var(--ui);
-    background: var(--panel-bg);
-    padding: 6px 10px;
+    border: 2px solid var(--ui);
+    background: white;
+    padding: 6px 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border-radius: 4px;
+    transition: all 0.15s ease;
+    border-radius: 6px;
+    font-size: 10px;
   }
 
   #btnBgm:hover, #btnSfx:hover {
-    background: #f0f0f0;
+    background: #f0f8ff;
     transform: translateY(-1px);
   }
 
   #vol {
-    width: 120px;
+    width: 100px;
     accent-color: var(--accent);
   }
 
-  /* Pokemon Sprites - FIXED with fallback */
+  /* Title Screen */
+  .title-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, #1e3c72,
+  #2a5298);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    animation: titleShine 3s ease-in-out infinite;
+  }
+
+  @keyframes titleShine {
+    0%, 100% { background: linear-gradient(45deg,
+  #1e3c72, #2a5298); }
+    50% { background: linear-gradient(45deg, #2a5298,
+  #1e3c72); }
+  }
+
+  .title-content {
+    text-align: center;
+    color: white;
+  }
+
+  .game-title {
+    font-size: 24px;
+    margin: 0 0 10px 0;
+    text-shadow: 3px 3px 0 #000;
+    animation: titlePulse 2s ease-in-out infinite;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .subtitle {
+    font-size: 14px;
+    margin-bottom: 30px;
+    opacity: 0.9;
+  }
+
+  .start-btn {
+    padding: 15px 30px;
+    font-size: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .start-btn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Introduction Scene */
+  .intro-scene {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, #87ceeb 0%,
+  var(--battle-bg) 50%, #8fbc8f 100%);
+    display: flex;
+    align-items: flex-end;
+    z-index: 400;
+  }
+
+  .intro-dialog {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .dialog-box {
+    background: white;
+    border: 4px solid var(--ui);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    animation: dialogSlideUp 0.5s ease-out;
+  }
+
+  @keyframes dialogSlideUp {
+    from { transform: translateY(100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .dialog-text {
+    margin: 0;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  .dialog-continue {
+    position: absolute;
+    bottom: 8px;
+    right: 16px;
+    animation: dialogBlink 1s infinite;
+  }
+
+  @keyframes dialogBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* Battle Field */
+  .battle-field {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  /* Pokemon Sprites with beautiful fallbacks */
   .mon {
     position: absolute;
     image-rendering: pixelated;
-    width: 144px;
-    height: 144px;
-    transition: all 0.3s ease;
-    object-fit: contain;
+    width: 160px;
+    height: 160px;
+    transition: all 0.2s ease;
+    filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.3));
   }
 
   .front {
-    right: 48px;
-    top: 64px;
-    filter: drop-shadow(4px 4px 0 var(--shadow));
-    animation: enemyEntry 1s ease-out 0.5s both;
+    right: 60px;
+    top: 80px;
+    animation: enemyAppear 0.8s ease-out 0.5s both;
   }
 
   .back {
-    left: 48px;
-    bottom: 160px;
-    filter: drop-shadow(4px 4px 0 var(--shadow));
-    animation: playerEntry 1s ease-out 0.8s both;
+    left: 60px;
+    bottom: 180px;
+    animation: playerAppear 0.8s ease-out 1s both;
   }
 
-  @keyframes enemyEntry {
-    from {
-      opacity: 0;
-      transform: translateX(100px) scale(0.8);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0) scale(1);
-    }
+  @keyframes enemyAppear {
+    from { opacity: 0; transform: translateX(100px)
+  scale(0.5); }
+    to { opacity: 1; transform: translateX(0) scale(1);
+  }
   }
 
-  @keyframes playerEntry {
-    from {
-      opacity: 0;
-      transform: translateX(-100px) scale(0.8);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0) scale(1);
-    }
+  @keyframes playerAppear {
+    from { opacity: 0; transform: translateX(-100px)
+  scale(0.5); }
+    to { opacity: 1; transform: translateX(0) scale(1);
+  }
   }
 
-  /* FIXED: Pokemon Info Panels with proper margins */
+  /* Pokemon Info Panels */
   .pokemon-info {
     position: absolute;
-    background: var(--panel-bg);
+    background: white;
     border: 3px solid var(--ui);
-    border-radius: 8px;
-    padding: 8px 12px;
-    min-width: 200px;
-    box-shadow: 0 4px 8px var(--shadow);
-    animation: infoSlideIn 0.8s ease-out;
-    z-index: 10;
+    border-radius: 12px;
+    padding: 12px 16px;
+    min-width: 220px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    animation: infoSlideIn 0.6s ease-out;
   }
 
   .enemy-info {
-    top: 60px;
-    left: 20px;
-    animation-delay: 1.2s;
-    animation-fill-mode: both;
-  }
-
-  .player-info {
-    bottom: 200px;
-    right: 20px;
+    top: 70px;
+    left: 30px;
     animation-delay: 1.5s;
     animation-fill-mode: both;
   }
 
+  .player-info {
+    bottom: 220px;
+    right: 30px;
+    animation-delay: 2s;
+    animation-fill-mode: both;
+  }
+
   @keyframes infoSlideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .name-level {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
   .pokemon-name {
     font-weight: bold;
+    font-size: 14px;
     color: var(--ui);
   }
 
   .pokemon-level {
-    font-size: 10px;
+    font-size: 11px;
     color: #666;
   }
 
   /* HP Bar System */
   .hp-container {
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
 
   .hp-bar-outer {
     width: 100%;
-    height: 8px;
+    height: 10px;
     background: #ddd;
     border: 2px solid var(--ui);
-    border-radius: 4px;
+    border-radius: 6px;
     overflow: hidden;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
 
   .hp-bar-inner {
     height: 100%;
     background: var(--hp-green);
-    transition: width 0.8s ease-out, background-color
+    transition: width 0.6s ease-out, background-color
   0.3s ease;
-    border-radius: 2px;
+    border-radius: 4px;
   }
 
-  .hp-bar-inner.low {
-    background: var(--hp-yellow);
-  }
-
+  .hp-bar-inner.low { background: var(--hp-yellow); }
   .hp-bar-inner.critical {
     background: var(--hp-red);
-    animation: criticalPulse 1s infinite;
+    animation: criticalPulse 0.8s infinite;
   }
 
   @keyframes criticalPulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+    50% { opacity: 0.7; }
   }
 
   .hp-text {
-    font-size: 8px;
+    font-size: 9px;
     text-align: right;
     color: #666;
   }
@@ -221,56 +323,29 @@
   .exp-container {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 4px;
+    gap: 8px;
+    margin-bottom: 6px;
   }
 
   .exp-label {
-    font-size: 8px;
+    font-size: 9px;
     color: #666;
   }
 
   .exp-bar-outer {
     flex: 1;
-    height: 6px;
+    height: 8px;
     background: #ddd;
     border: 1px solid var(--ui);
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
   }
 
   .exp-bar-inner {
     height: 100%;
     background: var(--exp-blue);
-    transition: width 1s ease-out;
-    border-radius: 2px;
-  }
-
-  /* Status Effects */
-  .status-effects {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
-
-  .status-effect {
-    padding: 2px 6px;
-    font-size: 8px;
-    border-radius: 4px;
-    color: white;
-    animation: statusPulse 2s infinite;
-  }
-
-  .status-burn { background: #f85030; }
-  .status-poison { background: #a040a0; }
-  .status-paralysis { background: #f8d030; color: #000;
-  }
-  .status-sleep { background: #705898; }
-  .status-freeze { background: #98d8d8; color: #000; }
-
-  @keyframes statusPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+    transition: width 0.8s ease-out;
+    border-radius: 3px;
   }
 
   /* Battle Panel */
@@ -281,223 +356,154 @@
     bottom: 0;
     background: var(--panel-bg);
     border-top: 4px solid var(--ui);
-    padding: 10px;
+    padding: 16px;
     display: grid;
     grid-template-columns: 1fr 2fr;
-    gap: 10px;
-    z-index: 20;
-    animation: panelSlideUp 0.6s ease-out 2s both;
+    gap: 16px;
+    z-index: 50;
+    animation: panelSlideUp 0.4s ease-out 2.5s both;
   }
 
   @keyframes panelSlideUp {
-    from {
-      transform: translateY(100%);
-    }
-    to {
-      transform: translateY(0);
-    }
-  }
-
-  /* FIXED: Introduction Phase */
-  .intro-phase {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 20px;
-  }
-
-  .intro-text p {
-    margin-bottom: 20px;
-    line-height: 1.6;
-  }
-
-  .continue-btn {
-    padding: 12px 24px;
-    border: 3px solid var(--ui);
-    background: #4caf50;
-    color: white;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-  }
-
-  .continue-btn:hover {
-    background: #45a049;
-    transform: translateY(-2px);
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
   }
 
   .menu {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .menu-btn, .move-btn, .back-btn {
-    padding: 14px 10px;
+    padding: 16px 12px;
     border: 3px solid var(--ui);
-    background: #fafafa;
+    background: white;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
     position: relative;
     overflow: hidden;
-    border-radius: 4px;
   }
 
-  .menu-btn::before, .move-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent,
-  rgba(255,255,255,0.4), transparent);
-    transition: left 0.5s ease;
-  }
-
-  .menu-btn:hover::before, .move-btn:hover::before {
-    left: 100%;
-  }
-
-  .menu-btn:active, .move-btn:active, .back-btn:active {
-    background: #e7fdfa;
-    transform: translateY(1px);
+  .menu-btn.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
   }
 
   .menu-btn:hover, .move-btn:hover, .back-btn:hover {
-    background: #f0f8ff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
   }
 
-  /* Move-specific styling */
+  .menu-btn.primary:hover {
+    background: #2563eb;
+  }
+
+  .menu-btn:active, .move-btn:active, .back-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Move Buttons */
   .move-btn {
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
   }
 
-  .move-btn::after {
-    content: attr(data-pp);
-    font-size: 8px;
+  .move-btn .pp {
+    font-size: 9px;
     color: #666;
+    opacity: 0.8;
   }
 
   .move-btn.no-pp {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 
-  .move-btn.no-pp:hover {
-    transform: none;
-    box-shadow: none;
-    background: #fafafa;
-  }
-
   .moves-menu {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr) auto;
+    grid-template-rows: 1fr 1fr auto;
   }
 
   .back-btn {
     grid-column: 1 / -1;
-    background: #ffe5e5;
-    border-radius: 4px;
+    background: #f87171;
+    color: white;
+    border-color: #ef4444;
   }
 
-  .hidden {
-    display: none !important;
+  .back-btn:hover {
+    background: #ef4444;
   }
+
+  .hidden { display: none !important; }
 
   /* Battle Log */
   .log {
     border: 3px solid var(--ui);
-    background: #fefefe;
-    padding: 10px;
-    height: 96px;
+    background: white;
+    padding: 12px;
+    height: 120px;
     overflow: auto;
-    line-height: 1.4;
+    line-height: 1.5;
     outline: none;
-    scroll-behavior: smooth;
-    border-radius: 4px;
+    border-radius: 8px;
+    font-size: 11px;
   }
 
   .log .row {
-    padding: 2px 0;
+    padding: 3px 0;
     border-bottom: 1px dotted #ccc;
-    animation: logEntry 0.5s ease-out;
+    animation: logAppear 0.3s ease-out;
   }
 
-  @keyframes logEntry {
-    from {
-      opacity: 0;
-      transform: translateX(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+  @keyframes logAppear {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
   }
 
-  .log .row:last-child {
-    border-bottom: none;
-  }
+  .log .row:last-child { border-bottom: none; }
 
-  .log .more {
-    color: #06c;
-    text-decoration: underline;
-    cursor: pointer;
-    transition: color 0.2s ease;
-  }
-
-  .log .more:hover {
-    color: #048;
-  }
-
-  /* Type Effectiveness Display */
+  /* Type Effectiveness */
   .effectiveness {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.9);
     color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
+    padding: 12px 24px;
+    border-radius: 12px;
     font-size: 16px;
-    z-index: 25;
-    animation: effectivenessShow 1.5s ease-out;
+    z-index: 200;
+    animation: effectivenessShow 1.2s ease-out;
   }
 
   @keyframes effectivenessShow {
-    0% {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.5);
-    }
-    20% {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1.2);
-    }
-    100% {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(1);
-    }
+    0% { opacity: 0; transform: translate(-50%, -50%)
+  scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%)
+  scale(1.1); }
+    80% { opacity: 1; transform: translate(-50%, -50%)
+  scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%)
+  scale(1); }
   }
 
   .effectiveness.super-effective {
-    color: #4caf50;
-    text-shadow: 0 0 10px #4caf50;
+    color: #4ade80;
+    text-shadow: 0 0 12px #4ade80;
   }
 
   .effectiveness.not-very-effective {
-    color: #ff9800;
-    text-shadow: 0 0 10px #ff9800;
-  }
-
-  .effectiveness.no-effect {
-    color: #f44336;
-    text-shadow: 0 0 10px #f44336;
+    color: #fb923c;
+    text-shadow: 0 0 12px #fb923c;
   }
 
   /* Battle Effects */
@@ -508,154 +514,63 @@
     right: 0;
     bottom: 0;
     pointer-events: none;
-    z-index: 15;
+    z-index: 100;
   }
 
   .effect-particle {
     position: absolute;
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    animation: particleFloat 2s ease-out forwards;
+    animation: particleFloat 1.5s ease-out forwards;
   }
 
   @keyframes particleFloat {
-    0% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(-100px) scale(0);
-    }
+    0% { opacity: 1; transform: translateY(0) scale(1);
+  }
+    100% { opacity: 0; transform: translateY(-80px)
+  scale(0); }
   }
 
-  .effect-fire { background: #ff4444; }
-  .effect-water { background: #4488ff; }
-  .effect-grass { background: #44ff44; }
-  .effect-normal { background: #eeeeee; }
+  .effect-fire { background: radial-gradient(circle,
+  #ff6b35, #f7931e); }
+  .effect-water { background: radial-gradient(circle,
+  #4fc3f7, #29b6f6); }
+  .effect-grass { background: radial-gradient(circle,
+  #66bb6a, #4caf50); }
+  .effect-normal { background: radial-gradient(circle,
+  #bdbdbd, #9e9e9e); }
 
-  /* Screen shake animation */
+  /* Screen Shake */
   @keyframes screenShake {
     0%, 100% { transform: translateX(0); }
-    10% { transform: translateX(-2px); }
-    20% { transform: translateX(2px); }
-    30% { transform: translateX(-2px); }
-    40% { transform: translateX(2px); }
-    50% { transform: translateX(-1px); }
-    60% { transform: translateX(1px); }
-    70% { transform: translateX(-1px); }
-    80% { transform: translateX(1px); }
-    90% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
   }
 
-  .screen-shake {
-    animation: screenShake 0.5s ease-in-out;
-  }
+  .screen-shake { animation: screenShake 0.3s
+  ease-in-out; }
 
-  /* FIXED: Responsive Design */
+  /* Responsive */
   @media (max-width: 768px) {
-    html, body {
-      font-size: 10px;
-    }
-
-    .hud {
-      left: 4px;
-      top: 4px;
-      gap: 4px;
-      padding: 2px 4px;
-    }
-
-    .mon {
-      width: 120px;
-      height: 120px;
-    }
-
-    .front {
-      right: 20px;
-      top: 40px;
-    }
-
-    .back {
-      left: 20px;
-      bottom: 140px;
-    }
-
-    .pokemon-info {
-      min-width: 160px;
-      padding: 6px 8px;
-    }
-
-    .enemy-info {
-      top: 40px;
-      left: 10px;
-    }
-
-    .player-info {
-      bottom: 180px;
-      right: 10px;
-    }
-
-    .panel {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr;
-    }
-
-    .menu {
-      order: 2;
-    }
-
-    .log {
-      order: 1;
-      height: 60px;
-    }
+    .mon { width: 140px; height: 140px; }
+    .front { right: 30px; top: 60px; }
+    .back { left: 30px; bottom: 160px; }
+    .pokemon-info { min-width: 180px; padding: 10px
+  12px; }
+    .enemy-info { top: 50px; left: 20px; }
+    .player-info { bottom: 200px; right: 20px; }
+    .panel { grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr; }
+    .menu { order: 2; }
+    .log { order: 1; height: 80px; }
   }
 
   @media (max-width: 480px) {
-    .hud {
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    #vol {
-      width: 80px;
-    }
-
-    .pokemon-info {
-      min-width: 140px;
-      font-size: 8px;
-    }
-
-    .menu-btn, .move-btn, .back-btn {
-      padding: 10px 8px;
-      font-size: 10px;
-    }
-  }
-
-  /* Dark mode support */
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --ui: #ffffff;
-      --box: #1a1a1a;
-      --panel-bg: #2a2a2a;
-      --battle-bg: #2d5a4a;
-    }
-
-    #field {
-      background: linear-gradient(180deg, #1a2332 0%,
-  var(--battle-bg) 50%, #2a3d2a 100%);
-    }
-
-    .log {
-      background: #2a2a2a;
-      color: #ffffff;
-    }
-
-    .pokemon-name {
-      color: #ffffff;
-    }
-
-    .hud {
-      background: rgba(42, 42, 42, 0.9);
-    }
+    .game-title { font-size: 18px; }
+    .hud { left: 4px; top: 4px; padding: 4px 8px; }
+    #vol { width: 80px; }
+    .pokemon-info { min-width: 160px; font-size: 10px; }
+    .menu-btn, .move-btn, .back-btn { padding: 12px 8px;
+   font-size: 10px; }
   }
