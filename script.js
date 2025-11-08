@@ -1,14 +1,22 @@
  document.addEventListener('DOMContentLoaded',
   function() {
+      console.log('Script ready!');
+
       const startBtn =
   document.getElementById('start-btn');
       const continueBtn =
   document.getElementById('continue-btn');
 
+      console.log('Buttons found:', {
+          start: !!startBtn,
+          continue: !!continueBtn
+      });
+
+      // はじめるボタン
       if (startBtn) {
           startBtn.addEventListener('click', function()
   {
-              // タイトル画面を隠す
+              console.log('Start clicked!');
               const titleScreen =
   document.getElementById('title-screen');
               const introScreen =
@@ -19,10 +27,11 @@
           });
       }
 
+      // 続けるボタン
       if (continueBtn) {
           continueBtn.addEventListener('click',
   function() {
-              // 導入画面を隠してバトル画面を表示
+              console.log('Continue clicked!');
               const introScreen =
   document.getElementById('intro-screen');
               const battleScreen =
@@ -31,5 +40,7 @@
               introScreen.classList.add('hidden');
               battleScreen.classList.remove('hidden');
           });
+      } else {
+          console.log('Continue button not found!');
       }
   });
