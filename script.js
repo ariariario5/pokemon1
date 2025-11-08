@@ -14,7 +14,6 @@ console.log('Script loaded successfully!');
               console.log('Button clicked!');
               alert('ボタンが動いてます！');
 
-              // シーン切り替えテスト
               const titleScreen =
   document.getElementById('title-screen');
               const introScreen =
