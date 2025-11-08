@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport"
   content="width=device-width,initial-scale=1" />
-  <title>Pokemon Battle Enhanced - Fixed</title>
+  <title>ポケットモンスター バトル</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect"
   href="https://fonts.googleapis.com">
@@ -14,151 +14,143 @@
   ress+Start+2P&display=swap" rel="stylesheet">
   </head>
   <body>
-    <!-- Fixed HUD with proper z-index and margins -->
+    <!-- HUD Controls -->
     <header class="hud">
       <button id="btnBgm">BGM ▶︎</button>
       <input id="vol" type="range" min="0" max="1"
   step="0.01" value="0.6" />
-      <button id="btnSfx" class="sfx-toggle">SFX
-  ▶︎</button>
+      <button id="btnSfx">SFX ▶︎</button>
     </header>
 
     <main id="field">
-      <!-- Enemy Pokemon Info - Fixed margins -->
-      <div class="pokemon-info enemy-info">
-        <div class="name-level">
-          <span class="pokemon-name"
+      <!-- Title Screen -->
+      <div class="title-screen" id="title-screen">
+        <div class="title-content">
+          <h1 class="game-title">ポケットモンスター</h1>
+          <div class="subtitle">バトル</div>
+          <button class="start-btn"
+  id="start-game">スタート</button>
+        </div>
+      </div>
+
+      <!-- Introduction Scene -->
+      <div class="intro-scene hidden" id="intro-scene">
+        <div class="intro-dialog">
+          <div class="dialog-box">
+            <p class="dialog-text"
+  id="dialog-text">ポケモンせかいへ ようこそ！</p>
+            <div class="dialog-continue">▼</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Battle Field -->
+      <div class="battle-field hidden"
+  id="battle-field">
+        <!-- Enemy Pokemon Info -->
+        <div class="pokemon-info enemy-info">
+          <div class="name-level">
+            <span class="pokemon-name"
   id="enemy-name">フシギダネ</span>
-          <span class="pokemon-level">Lv.<span
+            <span class="pokemon-level">Lv.<span
   id="enemy-level">5</span></span>
-        </div>
-        <div class="hp-container">
-          <div class="hp-bar-outer">
-            <div class="hp-bar-inner" id="enemy-hp-bar"
-  style="width: 100%"></div>
           </div>
-          <div class="hp-text">
-            <span id="enemy-hp-current">35</span>/<span
+          <div class="hp-container">
+            <div class="hp-bar-outer">
+              <div class="hp-bar-inner"
+  id="enemy-hp-bar" style="width: 100%"></div>
+            </div>
+            <div class="hp-text">
+              HP: <span
+  id="enemy-hp-current">35</span>/<span
   id="enemy-hp-max">35</span>
+            </div>
           </div>
-        </div>
-        <div class="status-effects"
+          <div class="status-effects"
   id="enemy-status"></div>
-      </div>
+        </div>
 
-      <!-- Pokemon Sprites with fallback -->
-      <img id="enemy" class="mon front" alt="Enemy
-  Pokemon" src="data:image/svg+xml;charset=UTF-8,%3Csvg
-  xmlns='http://www.w3.org/2000/svg' width='144'
-  height='144' viewBox='0 0 144 144'%3E%3Crect
-  width='144' height='144' fill='%234caf50'
-  rx='8'/%3E%3Ccircle cx='72' cy='75' r='42'
-  fill='%23ffffff' opacity='0.3' /%3E%3Ccircle cx='57'
-  cy='66' r='8' fill='%23000'/%3E%3Ccircle cx='87'
-  cy='66' r='8' fill='%23000'/%3E%3Cpath d='M50 90 Q72
-  105 94 90' stroke='%23000' stroke-width='3'
-  fill='none'/%3E%3Ctext x='72' y='120'
-  text-anchor='middle' fill='%23fff'
-  font-family='monospace'
-  font-size='10'%3EEnemy%3C/text%3E%3C/svg%3E" />
-      <img id="player" class="mon back" alt="Player
-  Pokemon" src="data:image/svg+xml;charset=UTF-8,%3Csvg
-  xmlns='http://www.w3.org/2000/svg' width='144'
-  height='144' viewBox='0 0 144 144'%3E%3Crect
-  width='144' height='144' fill='%23ff8844'
-  rx='8'/%3E%3Ccircle cx='72' cy='75' r='42'
-  fill='%23ffffff' opacity='0.3' /%3E%3Ccircle cx='57'
-  cy='66' r='8' fill='%23000'/%3E%3Ccircle cx='87'
-  cy='66' r='8' fill='%23000'/%3E%3Cpath d='M50 90 Q72
-  105 94 90' stroke='%23000' stroke-width='3'
-  fill='none'/%3E%3Ctext x='72' y='120'
-  text-anchor='middle' fill='%23fff'
-  font-family='monospace'
-  font-size='10'%3EPlayer%3C/text%3E%3C/svg%3E" />
+        <!-- Pokemon Sprites -->
+        <img id="enemy" class="mon front" alt="Enemy
+  Pokemon" />
+        <img id="player" class="mon back" alt="Player
+  Pokemon" />
 
-      <!-- Player Pokemon Info - Fixed margins -->
-      <div class="pokemon-info player-info">
-        <div class="name-level">
-          <span class="pokemon-name"
+        <!-- Player Pokemon Info -->
+        <div class="pokemon-info player-info">
+          <div class="name-level">
+            <span class="pokemon-name"
   id="player-name">ヒトカゲ</span>
-          <span class="pokemon-level">Lv.<span
+            <span class="pokemon-level">Lv.<span
   id="player-level">5</span></span>
-        </div>
-        <div class="hp-container">
-          <div class="hp-bar-outer">
-            <div class="hp-bar-inner" id="player-hp-bar"
-   style="width: 100%"></div>
           </div>
-          <div class="hp-text">
-            <span id="player-hp-current">30</span>/<span
-   id="player-hp-max">30</span>
+          <div class="hp-container">
+            <div class="hp-bar-outer">
+              <div class="hp-bar-inner"
+  id="player-hp-bar" style="width: 100%"></div>
+            </div>
+            <div class="hp-text">
+              HP: <span
+  id="player-hp-current">30</span>/<span
+  id="player-hp-max">30</span>
+            </div>
           </div>
-        </div>
-        <div class="exp-container">
-          <span class="exp-label">EXP</span>
-          <div class="exp-bar-outer">
-            <div class="exp-bar-inner"
+          <div class="exp-container">
+            <span class="exp-label">EXP</span>
+            <div class="exp-bar-outer">
+              <div class="exp-bar-inner"
   id="player-exp-bar" style="width: 60%"></div>
+            </div>
           </div>
-        </div>
-        <div class="status-effects"
+          <div class="status-effects"
   id="player-status"></div>
+        </div>
+
+        <!-- Battle Panel -->
+        <section class="panel" id="battle-panel">
+          <!-- Main Menu -->
+          <div class="menu main-menu" id="main-menu">
+            <button data-act="fight" class="menu-btn
+  primary">たたかう</button>
+            <button data-act="pokemon"
+  class="menu-btn">ポケモン</button>
+            <button data-act="bag"
+  class="menu-btn">バッグ</button>
+            <button data-act="run"
+  class="menu-btn">にげる</button>
+          </div>
+
+          <!-- Move Selection Menu -->
+          <div class="menu moves-menu hidden"
+  id="moves-menu">
+            <button data-move="tackle"
+  class="move-btn">たいあたり<span
+  class="pp">35/35</span></button>
+            <button data-move="ember"
+  class="move-btn">ひのこ<span
+  class="pp">25/25</span></button>
+            <button data-move="growl"
+  class="move-btn">なきごえ<span
+  class="pp">40/40</span></button>
+            <button data-move="scratch"
+  class="move-btn">ひっかく<span
+  class="pp">35/35</span></button>
+            <button class="back-btn">もどる</button>
+          </div>
+
+          <div id="log" class="log" tabindex="0"
+  aria-label="バトルログ"></div>
+        </section>
       </div>
 
-      <!-- Battle Panel with state management -->
-      <section class="panel" id="main-panel">
-        <!-- Introduction Phase -->
-        <div class="intro-phase" id="intro-phase">
-          <div class="intro-text">
-            <p>やせいの <span
-  id="intro-enemy-name">フシギダネ</span> が
-  とびだしてきた！</p>
-            <button id="intro-continue"
-  class="continue-btn">続ける</button>
-          </div>
-        </div>
-
-        <!-- Main Menu -->
-        <div class="menu main-menu hidden"
-  id="main-menu">
-          <button data-act="atk"
-  class="menu-btn">たたかう</button>
-          <button data-act="switch"
-  class="menu-btn">ポケモン</button>
-          <button data-act="item"
-  class="menu-btn">どうぐ</button>
-          <button data-act="run"
-  class="menu-btn">にげる</button>
-        </div>
-
-        <!-- Move Selection Menu -->
-        <div class="menu moves-menu hidden"
-  id="moves-menu">
-          <button data-move="tackle" class="move-btn"
-  data-pp="35/35">たいあたり</button>
-          <button data-move="ember" class="move-btn"
-  data-pp="25/25">ひのこ</button>
-          <button data-move="growl" class="move-btn"
-  data-pp="40/40">なきごえ</button>
-          <button data-move="scratch" class="move-btn"
-  data-pp="35/35">ひっかく</button>
-          <button class="back-btn">もどる</button>
-        </div>
-
-        <div id="log" class="log" tabindex="0"
-  aria-label="バトルログ"></div>
-      </section>
-
-      <!-- Battle Effects Overlay -->
+      <!-- Battle Effects -->
       <div id="battle-effects"
   class="battle-effects"></div>
-
-      <!-- Type Effectiveness Display -->
       <div id="effectiveness" class="effectiveness
   hidden"></div>
     </main>
 
-    <!-- Audio Elements -->
+    <!-- Audio -->
     <audio id="bgm" src="assets/bgm/battle.mp3"
   preload="auto" loop></audio>
     <audio id="sfx-attack" src="assets/sfx/attack.wav"
@@ -173,3 +165,582 @@
     <script src="script.js"></script>
   </body>
   </html>
+
+  📝 修正版2: style.css（美しいポケモンスプライト付き）
+
+  :root {
+    --ui: #0a0a0a;
+    --box: #fff;
+    --accent: #4a90e2;
+    --hp-green: #48d048;
+    --hp-yellow: #f8d030;
+    --hp-red: #f85030;
+    --exp-blue: #58a8f0;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --battle-bg: #9ee5cd;
+    --panel-bg: #f8f8f8;
+    --primary: #3b82f6;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: 'Press Start 2P', system-ui,
+  sans-serif;
+    font-size: 12px;
+    overflow: hidden;
+    background: #000;
+  }
+
+  /* Field */
+  #field {
+    position: relative;
+    height: 100vh;
+    background: linear-gradient(180deg, #87ceeb 0%,
+  var(--battle-bg) 50%, #8fbc8f 100%);
+    overflow: hidden;
+  }
+
+  /* HUD */
+  .hud {
+    position: fixed;
+    left: 8px;
+    top: 8px;
+    display: flex;
+    gap: 8px;
+    z-index: 1000;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 6px 12px;
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  #btnBgm, #btnSfx {
+    border: 2px solid var(--ui);
+    background: white;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-radius: 6px;
+    font-size: 10px;
+  }
+
+  #btnBgm:hover, #btnSfx:hover {
+    background: #f0f8ff;
+    transform: translateY(-1px);
+  }
+
+  #vol {
+    width: 100px;
+    accent-color: var(--accent);
+  }
+
+  /* Title Screen */
+  .title-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, #1e3c72,
+  #2a5298);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    animation: titleShine 3s ease-in-out infinite;
+  }
+
+  @keyframes titleShine {
+    0%, 100% { background: linear-gradient(45deg,
+  #1e3c72, #2a5298); }
+    50% { background: linear-gradient(45deg, #2a5298,
+  #1e3c72); }
+  }
+
+  .title-content {
+    text-align: center;
+    color: white;
+  }
+
+  .game-title {
+    font-size: 24px;
+    margin: 0 0 10px 0;
+    text-shadow: 3px 3px 0 #000;
+    animation: titlePulse 2s ease-in-out infinite;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .subtitle {
+    font-size: 14px;
+    margin-bottom: 30px;
+    opacity: 0.9;
+  }
+
+  .start-btn {
+    padding: 15px 30px;
+    font-size: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .start-btn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Introduction Scene */
+  .intro-scene {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, #87ceeb 0%,
+  var(--battle-bg) 50%, #8fbc8f 100%);
+    display: flex;
+    align-items: flex-end;
+    z-index: 400;
+  }
+
+  .intro-dialog {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .dialog-box {
+    background: white;
+    border: 4px solid var(--ui);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    animation: dialogSlideUp 0.5s ease-out;
+  }
+
+  @keyframes dialogSlideUp {
+    from { transform: translateY(100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .dialog-text {
+    margin: 0;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  .dialog-continue {
+    position: absolute;
+    bottom: 8px;
+    right: 16px;
+    animation: dialogBlink 1s infinite;
+  }
+
+  @keyframes dialogBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* Battle Field */
+  .battle-field {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  /* Pokemon Sprites with beautiful fallbacks */
+  .mon {
+    position: absolute;
+    image-rendering: pixelated;
+    width: 160px;
+    height: 160px;
+    transition: all 0.2s ease;
+    filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.3));
+  }
+
+  .front {
+    right: 60px;
+    top: 80px;
+    animation: enemyAppear 0.8s ease-out 0.5s both;
+  }
+
+  .back {
+    left: 60px;
+    bottom: 180px;
+    animation: playerAppear 0.8s ease-out 1s both;
+  }
+
+  @keyframes enemyAppear {
+    from { opacity: 0; transform: translateX(100px)
+  scale(0.5); }
+    to { opacity: 1; transform: translateX(0) scale(1);
+  }
+  }
+
+  @keyframes playerAppear {
+    from { opacity: 0; transform: translateX(-100px)
+  scale(0.5); }
+    to { opacity: 1; transform: translateX(0) scale(1);
+  }
+  }
+
+  /* Pokemon Info Panels */
+  .pokemon-info {
+    position: absolute;
+    background: white;
+    border: 3px solid var(--ui);
+    border-radius: 12px;
+    padding: 12px 16px;
+    min-width: 220px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    animation: infoSlideIn 0.6s ease-out;
+  }
+
+  .enemy-info {
+    top: 70px;
+    left: 30px;
+    animation-delay: 1.5s;
+    animation-fill-mode: both;
+  }
+
+  .player-info {
+    bottom: 220px;
+    right: 30px;
+    animation-delay: 2s;
+    animation-fill-mode: both;
+  }
+
+  @keyframes infoSlideIn {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .name-level {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .pokemon-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: var(--ui);
+  }
+
+  .pokemon-level {
+    font-size: 11px;
+    color: #666;
+  }
+
+  /* HP Bar System */
+  .hp-container {
+    margin-bottom: 6px;
+  }
+
+  .hp-bar-outer {
+    width: 100%;
+    height: 10px;
+    background: #ddd;
+    border: 2px solid var(--ui);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .hp-bar-inner {
+    height: 100%;
+    background: var(--hp-green);
+    transition: width 0.6s ease-out, background-color
+  0.3s ease;
+    border-radius: 4px;
+  }
+
+  .hp-bar-inner.low { background: var(--hp-yellow); }
+  .hp-bar-inner.critical {
+    background: var(--hp-red);
+    animation: criticalPulse 0.8s infinite;
+  }
+
+  @keyframes criticalPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .hp-text {
+    font-size: 9px;
+    text-align: right;
+    color: #666;
+  }
+
+  /* EXP Bar */
+  .exp-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .exp-label {
+    font-size: 9px;
+    color: #666;
+  }
+
+  .exp-bar-outer {
+    flex: 1;
+    height: 8px;
+    background: #ddd;
+    border: 1px solid var(--ui);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .exp-bar-inner {
+    height: 100%;
+    background: var(--exp-blue);
+    transition: width 0.8s ease-out;
+    border-radius: 3px;
+  }
+
+  /* Battle Panel */
+  .panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--panel-bg);
+    border-top: 4px solid var(--ui);
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 16px;
+    z-index: 50;
+    animation: panelSlideUp 0.4s ease-out 2.5s both;
+  }
+
+  @keyframes panelSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .menu {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .menu-btn, .move-btn, .back-btn {
+    padding: 16px 12px;
+    border: 3px solid var(--ui);
+    background: white;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .menu-btn.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .menu-btn:hover, .move-btn:hover, .back-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .menu-btn.primary:hover {
+    background: #2563eb;
+  }
+
+  .menu-btn:active, .move-btn:active, .back-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Move Buttons */
+  .move-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .move-btn .pp {
+    font-size: 9px;
+    color: #666;
+    opacity: 0.8;
+  }
+
+  .move-btn.no-pp {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .moves-menu {
+    grid-template-rows: 1fr 1fr auto;
+  }
+
+  .back-btn {
+    grid-column: 1 / -1;
+    background: #f87171;
+    color: white;
+    border-color: #ef4444;
+  }
+
+  .back-btn:hover {
+    background: #ef4444;
+  }
+
+  .hidden { display: none !important; }
+
+  /* Battle Log */
+  .log {
+    border: 3px solid var(--ui);
+    background: white;
+    padding: 12px;
+    height: 120px;
+    overflow: auto;
+    line-height: 1.5;
+    outline: none;
+    border-radius: 8px;
+    font-size: 11px;
+  }
+
+  .log .row {
+    padding: 3px 0;
+    border-bottom: 1px dotted #ccc;
+    animation: logAppear 0.3s ease-out;
+  }
+
+  @keyframes logAppear {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .log .row:last-child { border-bottom: none; }
+
+  /* Type Effectiveness */
+  .effectiveness {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    z-index: 200;
+    animation: effectivenessShow 1.2s ease-out;
+  }
+
+  @keyframes effectivenessShow {
+    0% { opacity: 0; transform: translate(-50%, -50%)
+  scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%)
+  scale(1.1); }
+    80% { opacity: 1; transform: translate(-50%, -50%)
+  scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%)
+  scale(1); }
+  }
+
+  .effectiveness.super-effective {
+    color: #4ade80;
+    text-shadow: 0 0 12px #4ade80;
+  }
+
+  .effectiveness.not-very-effective {
+    color: #fb923c;
+    text-shadow: 0 0 12px #fb923c;
+  }
+
+  /* Battle Effects */
+  .battle-effects {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .effect-particle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    animation: particleFloat 1.5s ease-out forwards;
+  }
+
+  @keyframes particleFloat {
+    0% { opacity: 1; transform: translateY(0) scale(1);
+  }
+    100% { opacity: 0; transform: translateY(-80px)
+  scale(0); }
+  }
+
+  .effect-fire { background: radial-gradient(circle,
+  #ff6b35, #f7931e); }
+  .effect-water { background: radial-gradient(circle,
+  #4fc3f7, #29b6f6); }
+  .effect-grass { background: radial-gradient(circle,
+  #66bb6a, #4caf50); }
+  .effect-normal { background: radial-gradient(circle,
+  #bdbdbd, #9e9e9e); }
+
+  /* Screen Shake */
+  @keyframes screenShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+  }
+
+  .screen-shake { animation: screenShake 0.3s
+  ease-in-out; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .mon { width: 140px; height: 140px; }
+    .front { right: 30px; top: 60px; }
+    .back { left: 30px; bottom: 160px; }
+    .pokemon-info { min-width: 180px; padding: 10px
+  12px; }
+    .enemy-info { top: 50px; left: 20px; }
+    .player-info { bottom: 200px; right: 20px; }
+    .panel { grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr; }
+    .menu { order: 2; }
+    .log { order: 1; height: 80px; }
+  }
+
+  @media (max-width: 480px) {
+    .game-title { font-size: 18px; }
+    .hud { left: 4px; top: 4px; padding: 4px 8px; }
+    #vol { width: 80px; }
+    .pokemon-info { min-width: 160px; font-size: 10px; }
+    .menu-btn, .move-btn, .back-btn { padding: 12px 8px;
+   font-size: 10px; }
+  }
