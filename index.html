@@ -4,24 +4,27 @@
   <meta charset="utf-8" />
   <meta name="viewport"
   content="width=device-width,initial-scale=1" />
-  <title>Pokemon Battle Enhanced</title>
+  <title>Pokemon Battle Enhanced - Fixed</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com"
-  crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+St
-  art+2P&display=swap" rel="stylesheet">
+  <link rel="preconnect"
+  href="https://fonts.googleapis.com">
+  <link rel="preconnect"
+  href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=P
+  ress+Start+2P&display=swap" rel="stylesheet">
   </head>
   <body>
+    <!-- Fixed HUD with proper z-index and margins -->
     <header class="hud">
       <button id="btnBgm">BGM ▶︎</button>
-      <input id="vol" type="range" min="0" max="1" step="0.01"
-  value="0.6" />
-      <button id="btnSfx" class="sfx-toggle">SFX ▶︎</button>
+      <input id="vol" type="range" min="0" max="1"
+  step="0.01" value="0.6" />
+      <button id="btnSfx" class="sfx-toggle">SFX
+  ▶︎</button>
     </header>
 
     <main id="field">
-      <!-- Enemy Pokemon Info -->
+      <!-- Enemy Pokemon Info - Fixed margins -->
       <div class="pokemon-info enemy-info">
         <div class="name-level">
           <span class="pokemon-name"
@@ -39,14 +42,41 @@
   id="enemy-hp-max">35</span>
           </div>
         </div>
-        <div class="status-effects" id="enemy-status"></div>
+        <div class="status-effects"
+  id="enemy-status"></div>
       </div>
 
-      <!-- Pokemon Sprites -->
-      <img id="enemy" class="mon front" alt="" />
-      <img id="player" class="mon back" alt="" />
+      <!-- Pokemon Sprites with fallback -->
+      <img id="enemy" class="mon front" alt="Enemy
+  Pokemon" src="data:image/svg+xml;charset=UTF-8,%3Csvg
+  xmlns='http://www.w3.org/2000/svg' width='144'
+  height='144' viewBox='0 0 144 144'%3E%3Crect
+  width='144' height='144' fill='%234caf50'
+  rx='8'/%3E%3Ccircle cx='72' cy='75' r='42'
+  fill='%23ffffff' opacity='0.3' /%3E%3Ccircle cx='57'
+  cy='66' r='8' fill='%23000'/%3E%3Ccircle cx='87'
+  cy='66' r='8' fill='%23000'/%3E%3Cpath d='M50 90 Q72
+  105 94 90' stroke='%23000' stroke-width='3'
+  fill='none'/%3E%3Ctext x='72' y='120'
+  text-anchor='middle' fill='%23fff'
+  font-family='monospace'
+  font-size='10'%3EEnemy%3C/text%3E%3C/svg%3E" />
+      <img id="player" class="mon back" alt="Player
+  Pokemon" src="data:image/svg+xml;charset=UTF-8,%3Csvg
+  xmlns='http://www.w3.org/2000/svg' width='144'
+  height='144' viewBox='0 0 144 144'%3E%3Crect
+  width='144' height='144' fill='%23ff8844'
+  rx='8'/%3E%3Ccircle cx='72' cy='75' r='42'
+  fill='%23ffffff' opacity='0.3' /%3E%3Ccircle cx='57'
+  cy='66' r='8' fill='%23000'/%3E%3Ccircle cx='87'
+  cy='66' r='8' fill='%23000'/%3E%3Cpath d='M50 90 Q72
+  105 94 90' stroke='%23000' stroke-width='3'
+  fill='none'/%3E%3Ctext x='72' y='120'
+  text-anchor='middle' fill='%23fff'
+  font-family='monospace'
+  font-size='10'%3EPlayer%3C/text%3E%3C/svg%3E" />
 
-      <!-- Player Pokemon Info -->
+      <!-- Player Pokemon Info - Fixed margins -->
       <div class="pokemon-info player-info">
         <div class="name-level">
           <span class="pokemon-name"
@@ -57,26 +87,40 @@
         <div class="hp-container">
           <div class="hp-bar-outer">
             <div class="hp-bar-inner" id="player-hp-bar"
-  style="width: 100%"></div>
+   style="width: 100%"></div>
           </div>
           <div class="hp-text">
             <span id="player-hp-current">30</span>/<span
-  id="player-hp-max">30</span>
+   id="player-hp-max">30</span>
           </div>
         </div>
         <div class="exp-container">
           <span class="exp-label">EXP</span>
           <div class="exp-bar-outer">
-            <div class="exp-bar-inner" id="player-exp-bar"
-  style="width: 60%"></div>
+            <div class="exp-bar-inner"
+  id="player-exp-bar" style="width: 60%"></div>
           </div>
         </div>
-        <div class="status-effects" id="player-status"></div>
+        <div class="status-effects"
+  id="player-status"></div>
       </div>
 
-      <!-- Battle Panel -->
+      <!-- Battle Panel with state management -->
       <section class="panel" id="main-panel">
-        <div class="menu main-menu" id="main-menu">
+        <!-- Introduction Phase -->
+        <div class="intro-phase" id="intro-phase">
+          <div class="intro-text">
+            <p>やせいの <span
+  id="intro-enemy-name">フシギダネ</span> が
+  とびだしてきた！</p>
+            <button id="intro-continue"
+  class="continue-btn">続ける</button>
+          </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div class="menu main-menu hidden"
+  id="main-menu">
           <button data-act="atk"
   class="menu-btn">たたかう</button>
           <button data-act="switch"
@@ -87,8 +131,9 @@
   class="menu-btn">にげる</button>
         </div>
 
-        <!-- Move Selection Menu (hidden by default) -->
-        <div class="menu moves-menu hidden" id="moves-menu">
+        <!-- Move Selection Menu -->
+        <div class="menu moves-menu hidden"
+  id="moves-menu">
           <button data-move="tackle" class="move-btn"
   data-pp="35/35">たいあたり</button>
           <button data-move="ember" class="move-btn"
@@ -105,7 +150,8 @@
       </section>
 
       <!-- Battle Effects Overlay -->
-      <div id="battle-effects" class="battle-effects"></div>
+      <div id="battle-effects"
+  class="battle-effects"></div>
 
       <!-- Type Effectiveness Display -->
       <div id="effectiveness" class="effectiveness
@@ -113,8 +159,8 @@
     </main>
 
     <!-- Audio Elements -->
-    <audio id="bgm" src="assets/bgm/battle.mp3" preload="auto"
-  loop></audio>
+    <audio id="bgm" src="assets/bgm/battle.mp3"
+  preload="auto" loop></audio>
     <audio id="sfx-attack" src="assets/sfx/attack.wav"
   preload="auto"></audio>
     <audio id="sfx-damage" src="assets/sfx/damage.wav"
